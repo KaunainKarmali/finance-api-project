@@ -925,6 +925,14 @@ app.displaySelectedSecurity = (symbol, name) => {
   $(`#${symbol}`).show("slow");
 };
 
+app.removeSelectedSecurity = (symbol) => {
+  const $target = $(`#${symbol}`);
+
+  $target.hide("slow", function () {
+    $target.remove();
+  });
+};
+
 // Show the selected security in the portfolio container
 app.displayInPortfolio = (symbol, name) => {
   const portfolioRowHTML = `
@@ -951,11 +959,17 @@ app.displayInPortfolio = (symbol, name) => {
   `;
 
   $(".portfolio-table").append(portfolioRowHTML);
+
+  // animate showing the new symbol
   $(`#portfolio-${symbol}`).show("slow");
 };
 
 app.removeFromPortfolio = (symbol) => {
-  $(`#portfolio-${symbol}`).remove();
+  const $target = $(`#portfolio-${symbol}`);
+
+  $target.hide("slow", function () {
+    $target.remove();
+  });
 };
 
 // ******************* EVENT LISTENERS *******************
@@ -1023,8 +1037,11 @@ app.selectSecurity = () => {
   app.$searchResultContainer.on("click", ".search-result-row", function () {
     // Extract the symbol and company name selected
     const $this = $(this);
-    const symbol = $this.children(".result-symbol").attr("id").split("-")[1];
-    const name = $this.children(".result-name").attr("id").split("-")[1];
+    const symbol = $this
+      .children(".result-symbol")
+      .attr("id")
+      .split("result-")[1];
+    const name = $this.children(".result-name").attr("id").split("result-")[1];
 
     // Tracks whether the security is already added or not
     const addSecurity = $this.find(".add-btn").length > 0 ? true : false; // true if its a new security to add
@@ -1056,7 +1073,7 @@ app.selectSecurity = () => {
       delete app.selection[symbol];
 
       // Remove security from screen
-      $(`#${symbol}`).remove();
+      app.removeSelectedSecurity(symbol);
 
       // Remove the selected security in the portfolio container
       app.removeFromPortfolio(symbol);
@@ -1082,7 +1099,7 @@ app.removeSecurity = () => {
       delete app.selection[symbol];
 
       // Remove security from screen
-      $(`#${symbol}`).remove();
+      app.removeSelectedSecurity(symbol);
 
       // Remove the selected security in the portfolio container
       app.removeFromPortfolio(symbol);
@@ -1100,6 +1117,48 @@ app.resetSearch = () => {
   });
 };
 
+// Event listener for portfolio form submission
+app.portfolioSubmission = () => {
+  $(".portfolio-form").on("submit", function (e) {
+    e.preventDefault();
+
+    // Collect user inputs and update the global selections object
+    const $tickerSelectors = $(".portfolio-selection-row");
+    const $tickers = $tickerSelectors.map(
+      (item) => $tickerSelectors[item].id.split("portfolio-")[1]
+    );
+    const $costs = $("input[name=cost]");
+    const $allocations = $("input[name=allocation]");
+
+    // Get total allocation to check if its equals 100% before proceeding with calculations
+    let totalAllocation = 0;
+    $allocations.map((item) => {
+      totalAllocation += parseFloat($allocations[item].value);
+    });
+
+    // Proceed if the total allocation by the user is 100%
+    if (totalAllocation === 100) {
+      // Loop through each ticker and update global object with the user's inputs
+      $allocations.map((index) => {
+        const ticker = $tickers[index];
+        app.selection = {
+          ...app.selection,
+          [ticker]: {
+            ...app.selection[ticker],
+            cost:
+              $costs[index].value === "" ? 0 : parseFloat($costs[index].value),
+            allocation: parseFloat($allocations[index].value),
+          },
+        };
+      });
+
+      console.log(app.selection);
+    } else {
+      // Create error message to user
+    }
+  });
+};
+
 // ******************* INIT FUNCTION *******************
 app.init = () => {
   app.submitUserSearch();
@@ -1107,6 +1166,7 @@ app.init = () => {
   app.resetSearch();
   app.selectSecurity();
   app.removeSecurity();
+  app.portfolioSubmission();
 };
 
 // ******************* DOCUMENT READY *******************
