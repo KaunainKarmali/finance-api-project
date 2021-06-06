@@ -9,7 +9,9 @@ app.apiKeyFinMod = "1dde315e9f4982f454e6e4d33f0fb8eb";
 app.apiEndpointFinMod = "https://financialmodelingprep.com/api/v3/search";
 
 // ******************* GLOBAL VARIABLES *******************
-app.sample = [
+app.selection = {}; // Stores securities selected by the user
+
+app.sampleSuggestions = [
   {
     symbol: "VO",
     name: "Vanguard Mid-Cap Index Fund ETF Shares",
@@ -796,13 +798,20 @@ app.sampleData = {
   },
 };
 
-app.selection = {};
-
 // ******************* JQUERY HANDLES  *******************
 app.$searchResultContainer = $(".search-result-container");
 app.$searchButton = $(".search-icon");
 app.$searchInput = $(".search-input");
 app.$searchForm = $(".search-form");
+
+// ******************* UTIL FUNCTIONS *******************
+// Truncate name or symbol if its too long
+app.truncateString = (string, length) => {
+  if (string.length > length) {
+    string = string.substring(0, length).trim() + "...";
+  }
+  return string;
+};
 
 // ******************* FUNCTIONS *******************
 app.getTimeSeriesData = (symbol) => {
@@ -822,14 +831,14 @@ app.getTimeSeriesData = (symbol) => {
 };
 
 // Get search options from the api
-app.getSearchResult = (keywords) => {
+app.getSearchSuggestions = (keywords) => {
   const promise = $.ajax({
-    url: app.apiEndpointFinMod,
+    // url: app.apiEndpointFinMod,
     method: "GET",
     dataType: "JSON",
     data: {
       apikey: app.apiKeyFinMod,
-      query: keywords,
+      // query: keywords,
       limit: "10",
     },
   });
@@ -838,17 +847,10 @@ app.getSearchResult = (keywords) => {
 };
 
 // Output a single search result to the screen
-app.displayEachSearchResult = (symbol, name) => {
-  // Truncate name or sybol if its too long
-  const nameLength = 50;
-  if (name.length > nameLength) {
-    name = name.substring(0, nameLength).trim() + "...";
-  }
-
-  const symbolLength = 8;
-  if (symbol.length > symbolLength) {
-    symbol = symbol.substring(0, symbolLength).trim() + "...";
-  }
+app.displayEachSearchSuggestion = (symbol, name) => {
+  // Truncate if the string is too long
+  const trucatedName = app.truncateString(name, 50);
+  const truncatedSymbol = app.truncateString(symbol, 8);
 
   // add or remove button to be appended to the search result depending on whether user has already included it in their selection or not
   const addBtn = `
@@ -862,11 +864,12 @@ app.displayEachSearchResult = (symbol, name) => {
     </button>`;
 
   // Create and append result to the page
+  // If the security has been selected, display the remove button, else display add button
   const resultHTML = `
     <div class="search-result-row">
-        <span class="result-symbol">${symbol}</span>
-        <span class="result-name">${name}</span>
-        ${symbol in app.selection ? removeBtn : addBtn} 
+        <span id="result-${symbol}" class="result-symbol">${truncatedSymbol}</span>
+        <span id="result-${name}" class="result-name">${trucatedName}</span>
+        ${symbol in app.selection ? removeBtn : addBtn}  
     </div>`;
 
   app.$searchResultContainer.append(resultHTML);
@@ -882,53 +885,8 @@ app.displayNoResults = () => {
   app.$searchResultContainer.append(resultHTML);
 };
 
-// Listen for user keystrokes to submit searches
-app.submitSearch = () => {
-  app.$searchInput.on("keypress", () => {
-    // get the user's search result and submit api request
-    const search = app.$searchInput.val();
-    app.getSearchResult(search);
-
-    const searchPromise = app.getSearchResult(search);
-
-    searchPromise
-      .then((data) => {
-        // Empty previous results
-        app.$searchResultContainer.empty();
-
-        // Display no results if there are none
-        if (data.length === 0) {
-          app.displayNoResults();
-        }
-
-        // Loop through search results and display it to the user
-        else {
-          data.forEach((result) => {
-            app.displayEachSearchResult(result.symbol, result.name);
-          });
-        }
-
-        // Show results container
-        app.$searchResultContainer.removeClass("hide");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  });
-};
-
-// Event listener for when the used selects the form reset button
-app.resetSearch = () => {
-  app.$searchForm.on("reset", () => {
-    // Empty previous results
-    app.$searchResultContainer.addClass("hide");
-    app.$searchResultContainer.empty();
-    app.$searchInput.val("");
-  });
-};
-
-// remove add button and add remove button
-app.removeAddButton = (selector) => {
+// display the remove button
+app.displayRemoveButton = (selector) => {
   const removeIcon = `<i class="fas fa-minus"></i>`;
   selector
     .find(".add-btn")
@@ -938,8 +896,8 @@ app.removeAddButton = (selector) => {
     .append(removeIcon);
 };
 
-// remove add button and add remove button
-app.removeRemoveButton = (selector) => {
+// display the add button
+app.displayAddButton = (selector) => {
   const addIcon = `<i class="fas fa-plus add-icon"></i>`;
   selector
     .find(".remove-btn")
@@ -949,14 +907,127 @@ app.removeRemoveButton = (selector) => {
     .append(addIcon);
 };
 
+// display the security selected back to the user
+app.displaySelectedSecurity = (symbol, name) => {
+  const selectedSecurityHTML = `
+    <div id="${symbol}" class="selection" style="display: none;">
+      <form class="selected-security-form" action="" method="get">
+        <p class="selected-ticker">${app.truncateString(symbol, 8)}</p>
+        <p class="selected-company">${app.truncateString(name, 25)}</p>
+        <button class="remove-selection-btn" type="submit">
+          <i class="fas fa-times remove-selection-icon"></i>
+        </button>
+      </form>
+    </div>
+  `;
+
+  $(".selections-container").append(selectedSecurityHTML);
+  $(`#${symbol}`).show("slow");
+};
+
+// Show the selected security in the portfolio container
+app.displayInPortfolio = (symbol, name) => {
+  const portfolioRowHTML = `
+    <tr id="portfolio-${symbol}" class="portfolio-selection-row" style="display: none;">
+      <td><span class="ticker">${symbol}</span></td>
+      <td>${name}</td>
+      <td>
+        <input
+          class="portfolio-input"
+          type="number"
+          name="cost"
+          placeholder="$1,000"
+        />
+      </td>
+      <td>
+        <input
+          class="portfolio-input"
+          type="number"
+          name="allocation"
+          placeholder="100%"
+        />
+      </td>
+    </tr>
+  `;
+
+  $(".portfolio-table").append(portfolioRowHTML);
+  $(`#portfolio-${symbol}`).show("slow");
+};
+
+app.removeFromPortfolio = (symbol) => {
+  $(`#portfolio-${symbol}`).remove();
+};
+
+// ******************* EVENT LISTENERS *******************
+
+// Listen for user keystrokes to submit searches
+app.submitUserSearch = () => {
+  app.$searchInput.on("keypress", () => {
+    // get the user's search result and submit api request
+    const search = app.$searchInput.val();
+    app.getSearchSuggestions(search);
+
+    // TEMPORARY COMMENTED OUT
+    // const searchPromise = app.getSearchSuggestions(search);
+    // searchPromise
+    //   .then((data) => {
+    // Empty previous results
+    app.$searchResultContainer.empty();
+
+    data = app.sampleSuggestions;
+
+    // Display no results if there are none
+    if (data.length === 0) {
+      app.displayNoResults();
+    }
+
+    // Loop through search results and display it to the user
+    else {
+      data.forEach((result) => {
+        app.displayEachSearchSuggestion(result.symbol, result.name);
+      });
+    }
+
+    // Show results container
+    app.$searchResultContainer.removeClass("hide");
+
+    // TEMPORARY COMMENTED OUT
+    // })
+    // .catch((error) => {
+    //   // If error occurs, show no search results found and log error
+    //   app.displayNoResults();
+    //   console.log(error);
+    // });
+  });
+};
+
+app.closeSuggestionsContainer = () => {
+  $(document).mouseup(function (e) {
+    const $target = $(e.target);
+
+    if (
+      $target.parents(".search-result-container").length > 0 || // True if clicking within the suggestions container
+      $target.parents(".search-bar").length > 0 // True if clicking in the search bar
+    ) {
+      // do nothing to the search suggestions container
+    }
+    // remove search results container if clicked outside the search area
+    else {
+      $(".search-result-container").addClass("hide");
+    }
+  });
+};
+
+// Event listener to track when user wants to add or remove a security from the search suggestions area
 app.selectSecurity = () => {
   app.$searchResultContainer.on("click", ".search-result-row", function () {
+    // Extract the symbol and company name selected
     const $this = $(this);
-    const symbol = $this.find(".result-symbol").text();
-    const name = $this.find(".result-name").text();
+    const symbol = $this.children(".result-symbol").attr("id").split("-")[1];
+    const name = $this.children(".result-name").attr("id").split("-")[1];
 
     // Tracks whether the security is already added or not
-    const addSecurity = $this.find(".add-btn").length > 0 ? true : false;
+    const addSecurity = $this.find(".add-btn").length > 0 ? true : false; // true if its a new security to add
 
     // Only add unique selections
     if (app.selection[symbol] === undefined && addSecurity) {
@@ -967,27 +1038,75 @@ app.selectSecurity = () => {
         },
       };
 
-      app.removeAddButton($this);
+      app.displayRemoveButton($this);
 
-      const dataPromise = app.getTimeSeriesData(symbol);
+      // Show the selected security to the user
+      app.displaySelectedSecurity(symbol, name);
 
-      dataPromise
-        .then((data) => console.log(data))
-        .catch((error) => console.log(error));
+      // Show the selected security in the portfolio container
+      app.displayInPortfolio(symbol, name);
+
+      // TEMPORARY COMMENTED OUT
+      // const dataPromise = app.getTimeSeriesData(symbol);
+      // dataPromise
+      //   .then((data) => console.log(data))
+      //   .catch((error) => console.log(error));
     } else if (addSecurity !== true) {
+      // Remove security from the collection
       delete app.selection[symbol];
-      app.removeRemoveButton($this);
+
+      // Remove security from screen
+      $(`#${symbol}`).remove();
+
+      // Remove the selected security in the portfolio container
+      app.removeFromPortfolio(symbol);
+
+      // Show add button in the suggestions container
+      app.displayAddButton($this);
     }
   });
 };
 
-console.log(app.sampleData);
+// Event listener to remove a security from the selected securities section
+app.removeSecurity = () => {
+  $(".selections-container").on(
+    "submit",
+    ".selected-security-form",
+    function (e) {
+      e.preventDefault();
+
+      // extract id from the parent element
+      const symbol = $(this).parent()[0].id;
+
+      // Remove security from the collection
+      delete app.selection[symbol];
+
+      // Remove security from screen
+      $(`#${symbol}`).remove();
+
+      // Remove the selected security in the portfolio container
+      app.removeFromPortfolio(symbol);
+    }
+  );
+};
+
+// Event listener for when the used selects the form reset button
+app.resetSearch = () => {
+  app.$searchForm.on("reset", () => {
+    // Empty previous results and hide container
+    app.$searchResultContainer.addClass("hide");
+    app.$searchResultContainer.empty();
+    app.$searchInput.val("");
+  });
+};
 
 // ******************* INIT FUNCTION *******************
 app.init = () => {
-  app.submitSearch();
+  app.submitUserSearch();
+  app.closeSuggestionsContainer();
   app.resetSearch();
   app.selectSecurity();
+  app.removeSecurity();
 };
 
 // ******************* DOCUMENT READY *******************
