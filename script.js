@@ -813,6 +813,16 @@ app.truncateString = (string, length) => {
   return string;
 };
 
+app.calcPortfolioCost = (object) => {
+  let portfolioCost = 0;
+
+  for (const [symbol, detail] of Object.entries(app.selection)) {
+    portfolioCost += detail.cost;
+  }
+
+  return portfolioCost;
+};
+
 // ******************* FUNCTIONS *******************
 app.getSecurityPrice = (symbol) => {
   const promise = $.ajax({
@@ -958,7 +968,7 @@ app.displayInPortfolio = (symbol, name) => {
     </tr>
   `;
 
-  $(".portfolio-table").append(portfolioRowHTML);
+  $(".portfolio-table-body").append(portfolioRowHTML);
 
   // animate showing the new symbol
   $(`#portfolio-${symbol}`).show("slow");
@@ -972,19 +982,51 @@ app.removeFromPortfolio = (symbol) => {
   });
 };
 
+app.displayResultRow = (
+  symbol,
+  portfolioCost,
+  investment,
+  { name, quantity, cost, price, allocation }
+) => {
+  // Calculate the relevant values to be displayed to the user
+  const incremental = Math.round(price * quantity);
+  const value = Math.round(cost + incremental);
+  const expectedAllocation = (
+    (value / (portfolioCost + investment)) *
+    100
+  ).toFixed(1);
+
+  console.log(portfolioCost + investment);
+
+  // Create HTML element to be rendered
+  const resultRowHTML = `
+    <tr id="rebalance-${symbol}" class="rebalance-data-row" style="display: none;">
+      <td><span class="ticker">${symbol}</span></td>
+      <td>${name}</td>
+      <td>${price}</td>
+      <td>${quantity}</td>
+      <td>${cost}</td>
+      <td>${incremental}</td>
+      <td>${value}</td>
+      <td>${allocation}</td>
+      <td>${expectedAllocation}</td>
+    </tr>
+  `;
+
+  // Show the element on the page to the user
+  $(".rebalance-table-body").append(resultRowHTML);
+
+  // animate showing the new symbol
+  $(`#rebalance-${symbol}`).show("slow");
+};
+
 app.calcSecurityPurchase = (
   symbol,
   { cost, price, allocation },
   investment,
-  remainingInvestment
+  remainingInvestment,
+  portfolioCost
 ) => {
-  let portfolioCost = 0;
-
-  for (const [symbol, detail] of Object.entries(app.selection)) {
-    portfolioCost += detail.cost;
-  }
-  // console.log("Portfolio cost: " + portfolioCost);
-
   // Determine what the value of the security should be to achieve the target allocation ratio
   const targetValue =
     (parseFloat(portfolioCost) + parseFloat(investment)) *
@@ -1178,6 +1220,7 @@ app.portfolioSubmission = () => {
     // Proceed if the total allocation by the user is 100%
     if (totalAllocation === 100) {
       let investment = $("#investment").val();
+      investment = parseInt(investment);
       let remainingInvestment = investment;
 
       // Loop through each ticker and update global object with the user's inputs
@@ -1206,18 +1249,29 @@ app.portfolioSubmission = () => {
             const price = parseFloat(timeSeries[firstKey]["5. adjusted close"]);
             app.selection[symbol].price = price;
 
+            // Calculate the total cost of the portfolio
+            let portfolioCost = app.calcPortfolioCost(app.selection);
+            console.log(portfolioCost);
+
             // Determine the quantity of securities to purchase and update the remaining amount to invest
             remainingInvestment = app.calcSecurityPurchase(
               symbol,
               app.selection[symbol],
               investment,
-              remainingInvestment
+              remainingInvestment,
+              portfolioCost
+            );
+
+            // Display the results to the user
+            app.displayResultRow(
+              symbol,
+              portfolioCost,
+              investment,
+              app.selection[symbol]
             );
           })
           .catch((error) => console.log(error));
       }
-
-      console.log(app.selection);
     } else {
       // Create error message to user
     }

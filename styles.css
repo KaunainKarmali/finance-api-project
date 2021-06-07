@@ -548,7 +548,6 @@ body {
 .portfolio-headings {
   text-align: left;
   color: var(--color-secondary-dark);
-  margin-bottom: 10px;
 }
 
 .portfolio-headings-ticker {
@@ -610,6 +609,52 @@ body {
   cursor: pointer;
 }
 
+/* ******************************************* */
+/************** Rebalance results **************/
+/* ******************************************* */
+/* Refactor this with portfolio-container */
+.rebalance-container {
+  width: 100%;
+  font-size: 1rem;
+  margin: 30px 0px;
+  background-color: var(--color-light-1);
+  padding: 30px;
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  font-family: "Montserrat", sans-serif;
+  text-align: left;
+}
+
+.rebalance-table {
+  padding: 0px;
+}
+
+.rebalance-headings {
+  color: var(--color-secondary-dark);
+  vertical-align: bottom;
+}
+
+.rebalance-ticker {
+  width: 10%;
+}
+
+.rebalance-company {
+  width: 30%;
+}
+
+.rebalance-qty,
+.rebalance-investment,
+.rebalance-incremental,
+.rebalance-value,
+.rebalance-price,
+.rebalance-target-alloc,
+.rebalance-expected-alloc {
+  width: 10%;
+}
+
+td {
+  padding: 5px;
+}
 /* *************************************** */
 /************** Media queries **************/
 /* *************************************** */
@@ -621,4 +666,4 @@ body {
   .search-container {
     width: 100%;
   }
-} ;
+}

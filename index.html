@@ -81,8 +81,6 @@
       </div>
       <!-- End: step 2 -->
 
-      <!-- </div> -->
-
       <!-- Start: Rebalancing tool -->
       <div class="portfolio-container">
         <h2 class="investment-selection-header">
@@ -100,7 +98,7 @@
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="portfolio-table-body">
               <tr class="spacer"></tr>
             </tbody>
           </table>
@@ -112,6 +110,30 @@
         </form>
       </div>
       <!-- End: Rebalancing tool -->
+
+      <!-- Start: Rebalancing results -->
+      <div class="rebalance-container">
+        <h2 class="rebalance-header">Your results</h2>
+        <table class="rebalance-table">
+          <thead>
+            <tr class="rebalance-headings">
+              <th class="rebalance-ticker">Ticker</th>
+              <th class="rebalance-company">Company</th>
+              <th class="rebalance-price">Price per unit</th>
+              <th class="rebalance-qty">Quantity to purchase</th>
+              <th class="rebalance-investment">Investment to date</th>
+              <th class="rebalance-incremental">Incremental investment</th>
+              <th class="rebalance-value">Total value</th>
+              <th class="rebalance-target-alloc">Target allocation (%)</th>
+              <th class="rebalance-expected-alloc">Expected allocation (%)</th>
+            </tr>
+          </thead>
+          <tbody class="rebalance-table-body">
+            <tr class="spacer"></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- End: Rebalancing results -->
     </div>
 
     <script
