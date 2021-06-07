@@ -814,16 +814,16 @@ app.truncateString = (string, length) => {
 };
 
 // ******************* FUNCTIONS *******************
-app.getTimeSeriesData = (symbol) => {
+app.getSecurityPrice = (symbol) => {
   const promise = $.ajax({
     url: app.apiEndpointAlpha,
     method: "GET",
     dataType: "JSON",
     data: {
       apikey: app.apiKeyAlpha,
-      function: "TIME_SERIES_INTRADAY",
+      function: "TIME_SERIES_DAILY_ADJUSTED",
+      outputsize: "compact",
       symbol: symbol,
-      interval: "15min",
     },
   });
 
@@ -970,6 +970,45 @@ app.removeFromPortfolio = (symbol) => {
   $target.hide("slow", function () {
     $target.remove();
   });
+};
+
+app.calcSecurityPurchase = (
+  symbol,
+  { cost, price, allocation },
+  investment,
+  remainingInvestment
+) => {
+  let portfolioCost = 0;
+
+  for (const [symbol, detail] of Object.entries(app.selection)) {
+    portfolioCost += detail.cost;
+  }
+  // console.log("Portfolio cost: " + portfolioCost);
+
+  // Determine what the value of the security should be to achieve the target allocation ratio
+  const targetValue =
+    (parseFloat(portfolioCost) + parseFloat(investment)) *
+    (parseFloat(allocation) / 100);
+  // console.log("Target value: " + targetValue);
+
+  // Determine the incremental value to invest to achieve the target allocation ratio
+  const incrementalValue = Math.max(targetValue - cost, 0);
+  // console.log("Incremental value: " + incrementalValue);
+
+  // Determine the quantity to purchase to achieve the target allocation ratio
+  // Limit the purchase to avoid having the investment amount go negative
+  const quantity = Math.min(
+    Math.floor(incrementalValue / price),
+    Math.floor(remainingInvestment / price)
+  );
+  // console.log("Quantity: " + quantity);
+
+  // Update the global securities object
+  app.selection[symbol].quantity = quantity;
+
+  // Update the remaining investment amount
+  remainingInvestment = (remainingInvestment - price * quantity).toFixed(2);
+  return remainingInvestment;
 };
 
 // ******************* EVENT LISTENERS *******************
@@ -1119,7 +1158,7 @@ app.resetSearch = () => {
 
 // Event listener for portfolio form submission
 app.portfolioSubmission = () => {
-  $(".portfolio-form").on("submit", function (e) {
+  $(".portfolio-form").on("submit", async function (e) {
     e.preventDefault();
 
     // Collect user inputs and update the global selections object
@@ -1138,6 +1177,9 @@ app.portfolioSubmission = () => {
 
     // Proceed if the total allocation by the user is 100%
     if (totalAllocation === 100) {
+      let investment = $("#investment").val();
+      let remainingInvestment = investment;
+
       // Loop through each ticker and update global object with the user's inputs
       $allocations.map((index) => {
         const ticker = $tickers[index];
@@ -1151,6 +1193,29 @@ app.portfolioSubmission = () => {
           },
         };
       });
+
+      // Loop through securities to get current market price
+      for (const [symbol, details] of Object.entries(app.selection)) {
+        const promise = app.getSecurityPrice(symbol);
+
+        await promise
+          .then((data) => {
+            // get the closing price of the first object and save it in the global object
+            const timeSeries = data["Time Series (Daily)"];
+            const firstKey = Object.keys(timeSeries)[0];
+            const price = parseFloat(timeSeries[firstKey]["5. adjusted close"]);
+            app.selection[symbol].price = price;
+
+            // Determine the quantity of securities to purchase and update the remaining amount to invest
+            remainingInvestment = app.calcSecurityPurchase(
+              symbol,
+              app.selection[symbol],
+              investment,
+              remainingInvestment
+            );
+          })
+          .catch((error) => console.log(error));
+      }
 
       console.log(app.selection);
     } else {
