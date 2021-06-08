@@ -247,7 +247,6 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 500;
   background-color: var(--color-neutral);
-  padding: 30px;
 }
 
 .hide {
@@ -255,11 +254,140 @@ body {
 }
 
 .wrapper {
+  padding: 30px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   align-content: center;
   flex-wrap: wrap;
+  max-width: 900px;
+  margin: 0px auto;
+}
+
+td {
+  padding: 5px;
+  font-size: 0.8rem;
+}
+
+th {
+  padding: 5px;
+  font-size: 0.8rem;
+  vertical-align: bottom;
+}
+
+/* *************************************** */
+/******************* Navbar ****************/
+/* *************************************** */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-primary);
+  padding: 0px 30px;
+  height: 4rem;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.logo-container > a {
+  color: var(--color-secondary);
+  list-style: none;
+  text-decoration: none;
+}
+
+.logo-container > a:visited {
+  color: var(--color-secondary);
+  list-style: none;
+  text-decoration: none;
+}
+
+.logo {
+  color: var(--color-secondary);
+  font-size: 2rem;
+}
+
+.links-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 0px;
+  margin: 0px;
+  width: 40%;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.navbar-link {
+  list-style: none;
+}
+
+.navbar-link > a {
+  color: var(--color-secondary);
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.navbar-link > a:visited {
+  color: var(--color-secondary);
+}
+
+/* *************************************** */
+/************** Header / landing ***********/
+/* *************************************** */
+.header {
+  margin: 0px auto;
+}
+
+.hero-landing {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 90vh;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+}
+
+h1 {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  width: 80%;
+  line-height: 1.2;
+  text-align: center;
+}
+
+h2 {
+  width: 60%;
+  color: var(--color-secondary-dark);
+  font-size: 2rem;
+  text-align: center;
+  font-weight: 300;
+}
+
+/* *************************************** */
+/************** Scrollbar styles **************/
+/* *************************************** */
+
+/* Whole scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--color-light-1);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--color-secondary);
+  border-radius: 30px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary-dark);
 }
 
 /* *************************************** */
@@ -473,11 +601,12 @@ body {
   background-color: var(--color-primary);
   display: inline-block;
   border-radius: 10px;
-  padding: 10px 30px;
+  padding: 10px 15px;
   position: relative;
   margin: 2.5px;
   max-width: 15%;
-  min-width: 150px;
+  min-width: 110px;
+  overflow-wrap: break-word;
 }
 
 .selected-ticker {
@@ -542,7 +671,7 @@ body {
 
 .portfolio-table {
   padding: 0px;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .portfolio-headings {
@@ -550,7 +679,7 @@ body {
   color: var(--color-secondary-dark);
 }
 
-.portfolio-headings-ticker {
+/* .portfolio-headings-ticker {
   width: 20%;
 }
 
@@ -564,7 +693,7 @@ body {
 
 .portfolio-headings-target-allocation {
   width: 20%;
-}
+} */
 
 .spacer {
   height: 10px;
@@ -573,8 +702,9 @@ body {
 .portfolio-input {
   border-radius: 5px;
   border: 1px solid var(--color-secondary-dark);
-  width: 95%;
-  padding: 5px 10px;
+  width: 100%;
+  padding: 5px;
+  margin: 0;
   font-family: "Montserrat", sans-serif;
 }
 
@@ -610,14 +740,81 @@ body {
 }
 
 /* ******************************************* */
+/************** Overall results **************/
+/* ******************************************* */
+.rebalance-header {
+  /* background-color: var(--color-secondary); */
+  display: inline-block;
+  color: var(--color-light-1);
+  padding: 10px;
+  border-radius: 5px;
+}
+/* .overall-results-container {
+  width: 100%;
+  font-size: 1rem;
+  margin: 0px 0px 30px;
+  background-color: var(--color-secondary);
+  padding: 30px;
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  font-family: "Montserrat", sans-serif;
+  text-align: left;
+} */
+
+.results-wrapper {
+  width: 100%;
+  font-size: 1rem;
+  margin: 30px 0px 0px;
+  padding: 30px;
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  font-family: "Montserrat", sans-serif;
+  background-color: var(--color-primary);
+  color: var(--color-light-1);
+}
+
+.results-container {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  align-content: flex-start;
+}
+
+.result-title {
+  color: var(--color-secondary);
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin: 10px 0;
+}
+
+.result-value {
+  font-size: 2.5rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.result-symbol {
+  font-size: 1.3rem;
+  width: auto;
+  margin: 5px;
+}
+
+.result-name {
+  font-size: 0.8rem;
+}
+
+/* ******************************************* */
 /************** Rebalance results **************/
 /* ******************************************* */
 /* Refactor this with portfolio-container */
 .rebalance-container {
   width: 100%;
   font-size: 1rem;
-  margin: 30px 0px;
-  background-color: var(--color-light-1);
+  margin: 0px 0px 30px;
+  background-color: var(--color-secondary);
   padding: 30px;
   border-radius: 2px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
@@ -630,11 +827,10 @@ body {
 }
 
 .rebalance-headings {
-  color: var(--color-secondary-dark);
-  vertical-align: bottom;
+  color: var(--color-primary);
 }
 
-.rebalance-ticker {
+/* .rebalance-ticker {
   width: 10%;
 }
 
@@ -650,11 +846,8 @@ body {
 .rebalance-target-alloc,
 .rebalance-expected-alloc {
   width: 10%;
-}
+} */
 
-td {
-  padding: 5px;
-}
 /* *************************************** */
 /************** Media queries **************/
 /* *************************************** */
@@ -664,6 +857,15 @@ td {
   }
 
   .search-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 450px) {
+  .search-bar-container {
+    width: 100%;
+  }
+  .selections-container {
     width: 100%;
   }
 }

@@ -816,7 +816,7 @@ app.truncateString = (string, length) => {
 app.calcPortfolioCost = (object) => {
   let portfolioCost = 0;
 
-  for (const [symbol, detail] of Object.entries(app.selection)) {
+  for (const [symbol, detail] of Object.entries(object)) {
     portfolioCost += detail.cost;
   }
 
@@ -996,8 +996,6 @@ app.displayResultRow = (
     100
   ).toFixed(1);
 
-  console.log(portfolioCost + investment);
-
   // Create HTML element to be rendered
   const resultRowHTML = `
     <tr id="rebalance-${symbol}" class="rebalance-data-row" style="display: none;">
@@ -1018,6 +1016,8 @@ app.displayResultRow = (
 
   // animate showing the new symbol
   $(`#rebalance-${symbol}`).show("slow");
+
+  $(`.rebalance-container`).show("slow");
 };
 
 app.calcSecurityPurchase = (
@@ -1051,6 +1051,57 @@ app.calcSecurityPurchase = (
   // Update the remaining investment amount
   remainingInvestment = (remainingInvestment - price * quantity).toFixed(2);
   return remainingInvestment;
+};
+
+app.calcInvestmentBalance = (object) => {
+  let investmentBal = 0;
+
+  for (const [symbol, detail] of Object.entries(object)) {
+    investmentBal += parseFloat(detail.price) * parseFloat(detail.quantity);
+    console.log(detail.price);
+    console.log(detail.quantity);
+    console.log(investmentBal);
+  }
+
+  return parseInt(investmentBal);
+};
+
+app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
+  const resultsHTML = `
+    <div class="results-div">
+      <h2 class="rebalance-header">Your results</h2>
+      <div class="results-container">
+        <div class="result-item">
+          <div class="result-title">Total portfolio value</div>
+          <div class="result-value">
+            <span class="result-symbol">$</span>
+            ${parseInt(investment) + parseInt(portfolioCost)}
+          </div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-title">Remaining cash balance</div>
+          <div class="result-value">
+            <span class="result-symbol">$</span>
+            ${parseInt(investment) - parseInt(investmentBal)}
+          </div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-title">Investment balance</div>
+          <div class="result-value">
+            <span class="result-symbol">$</span>
+            ${parseInt(investmentBal) + parseInt(portfolioCost)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $(".results-wrapper").append(resultsHTML);
+
+  // animate showing the new symbol
+  $(`.results-wrapper`).show("slow");
 };
 
 // ******************* EVENT LISTENERS *******************
@@ -1144,6 +1195,11 @@ app.selectSecurity = () => {
       // Show the selected security in the portfolio container
       app.displayInPortfolio(symbol, name);
 
+      // Empty previous results and hide container
+      app.$searchResultContainer.addClass("hide");
+      app.$searchResultContainer.empty();
+      app.$searchInput.val("");
+
       // TEMPORARY COMMENTED OUT
       // const dataPromise = app.getTimeSeriesData(symbol);
       // dataPromise
@@ -1203,6 +1259,10 @@ app.portfolioSubmission = () => {
   $(".portfolio-form").on("submit", async function (e) {
     e.preventDefault();
 
+    // Clear previous results
+    $(".results-div").remove();
+    $(".rebalance-data-row").remove();
+
     // Collect user inputs and update the global selections object
     const $tickerSelectors = $(".portfolio-selection-row");
     const $tickers = $tickerSelectors.map(
@@ -1217,12 +1277,13 @@ app.portfolioSubmission = () => {
       totalAllocation += parseFloat($allocations[item].value);
     });
 
-    // Proceed if the total allocation by the user is 100%
-    if (totalAllocation === 100) {
-      let investment = $("#investment").val();
-      investment = parseInt(investment);
-      let remainingInvestment = investment;
+    // Get user's total investment input
+    let investment = $("#investment").val();
+    investment = parseInt(investment);
+    let remainingInvestment = investment;
 
+    // Proceed if the total allocation by the user is 100%
+    if (totalAllocation === 100 && investment > 0) {
       // Loop through each ticker and update global object with the user's inputs
       $allocations.map((index) => {
         const ticker = $tickers[index];
@@ -1237,6 +1298,9 @@ app.portfolioSubmission = () => {
         };
       });
 
+      // Calculate the total cost of the portfolio
+      let portfolioCost = app.calcPortfolioCost(app.selection);
+
       // Loop through securities to get current market price
       for (const [symbol, details] of Object.entries(app.selection)) {
         const promise = app.getSecurityPrice(symbol);
@@ -1248,10 +1312,6 @@ app.portfolioSubmission = () => {
             const firstKey = Object.keys(timeSeries)[0];
             const price = parseFloat(timeSeries[firstKey]["5. adjusted close"]);
             app.selection[symbol].price = price;
-
-            // Calculate the total cost of the portfolio
-            let portfolioCost = app.calcPortfolioCost(app.selection);
-            console.log(portfolioCost);
 
             // Determine the quantity of securities to purchase and update the remaining amount to invest
             remainingInvestment = app.calcSecurityPurchase(
@@ -1272,6 +1332,10 @@ app.portfolioSubmission = () => {
           })
           .catch((error) => console.log(error));
       }
+
+      const investmentBal = app.calcInvestmentBalance(app.selection);
+
+      app.displayOverallResults(portfolioCost, investment, investmentBal);
     } else {
       // Create error message to user
     }
