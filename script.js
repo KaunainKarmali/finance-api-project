@@ -813,6 +813,7 @@ app.truncateString = (string, length) => {
   return string;
 };
 
+// Calculates the total cost of the portfolio
 app.calcPortfolioCost = (object) => {
   let portfolioCost = 0;
 
@@ -823,7 +824,13 @@ app.calcPortfolioCost = (object) => {
   return portfolioCost;
 };
 
+// Adds commas to a number
+app.numberWithCommas = (numb) => {
+  return numb.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+};
+
 // ******************* FUNCTIONS *******************
+// Gets the security price from the api
 app.getSecurityPrice = (symbol) => {
   const promise = $.ajax({
     url: app.apiEndpointAlpha,
@@ -999,13 +1006,13 @@ app.displayResultRow = (
   // Create HTML element to be rendered
   const resultRowHTML = `
     <tr id="rebalance-${symbol}" class="rebalance-data-row" style="display: none;">
-      <td><span class="ticker">${symbol}</span></td>
+      <td><span class="ticker-alt">${symbol}</span></td>
       <td>${name}</td>
-      <td>${price}</td>
-      <td>${quantity}</td>
-      <td>${cost}</td>
-      <td>${incremental}</td>
-      <td>${value}</td>
+      <td>${app.numberWithCommas(price)}</td>
+      <td>${app.numberWithCommas(quantity)}</td>
+      <td>${app.numberWithCommas(cost)}</td>
+      <td>${app.numberWithCommas(incremental)}</td>
+      <td>${app.numberWithCommas(value)}</td>
       <td>${allocation}</td>
       <td>${expectedAllocation}</td>
     </tr>
@@ -1058,9 +1065,6 @@ app.calcInvestmentBalance = (object) => {
 
   for (const [symbol, detail] of Object.entries(object)) {
     investmentBal += parseFloat(detail.price) * parseFloat(detail.quantity);
-    console.log(detail.price);
-    console.log(detail.quantity);
-    console.log(investmentBal);
   }
 
   return parseInt(investmentBal);
@@ -1075,7 +1079,9 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Total portfolio value</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${parseInt(investment) + parseInt(portfolioCost)}
+            ${app.numberWithCommas(
+              parseInt(investment) + parseInt(portfolioCost)
+            )}
           </div>
         </div>
 
@@ -1083,7 +1089,9 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Remaining cash balance</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${parseInt(investment) - parseInt(investmentBal)}
+            ${app.numberWithCommas(
+              parseInt(investment) - parseInt(investmentBal)
+            )}
           </div>
         </div>
 
@@ -1091,7 +1099,9 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Investment balance</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${parseInt(investmentBal) + parseInt(portfolioCost)}
+            ${app.numberWithCommas(
+              parseInt(investmentBal) + parseInt(portfolioCost)
+            )}
           </div>
         </div>
       </div>
@@ -1186,6 +1196,10 @@ app.selectSecurity = () => {
           name: name,
         },
       };
+
+      // Show the rebalancing table and button
+      $(".portfolio-table").removeClass("hide");
+      $(".rebalance-btn-container").removeClass("hide");
 
       app.displayRemoveButton($this);
 

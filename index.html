@@ -130,7 +130,7 @@
             class="portfolio-form"
             autocomplete="off"
           >
-            <table class="portfolio-table">
+            <table class="portfolio-table hide">
               <thead>
                 <tr class="portfolio-headings">
                   <th class="portfolio-headings-ticker">Ticker</th>
@@ -145,12 +145,14 @@
                 <tr class="spacer"></tr>
               </tbody>
             </table>
-            <input
-              class="rebalance-btn"
-              type="submit"
-              name="rebalance"
-              value="Rebalance portfolio"
-            />
+            <div class="rebalance-btn-container hide">
+              <input
+                class="rebalance-btn"
+                type="submit"
+                name="rebalance"
+                value="Rebalance portfolio"
+              />
+            </div>
           </form>
         </div>
         <!-- End: Rebalancing tool -->
