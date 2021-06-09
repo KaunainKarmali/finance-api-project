@@ -281,6 +281,12 @@ main {
   padding: 0px 40px;
 }
 
+section {
+  padding: 0px;
+  margin: 0px;
+  width: auto;
+}
+
 /* *************************************** */
 /******************* Navbar ****************/
 /* *************************************** */
@@ -894,8 +900,51 @@ h3 {
   width: 10%;
 } */
 
+/* ********************************************* */
+/************** Assumptions section **************/
+/* ********************************************* */
+.assumptions-section {
+  margin: 30px 0;
+}
+
+.assumption-container {
+  margin: 30px 0;
+  padding: 30px;
+  width: 100%;
+  font-size: 1rem;
+  background-color: var(--color-primary);
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  font-family: "Montserrat", sans-serif;
+  display: block;
+}
+
+.assumptions-title {
+  text-align: center;
+  margin: 0px auto;
+}
+
+.assumption-item {
+  display: flex;
+  justify-content: flex-start;
+  margin: 30px;
+}
+
+.assumption {
+  text-align: left;
+  width: auto;
+  margin: 0 10px;
+  font-size: 1.5rem;
+  color: var(--color-secondary);
+}
+
+.check-icon {
+  font-size: 2rem;
+  color: var(--color-secondary);
+}
+
 /* *************************************** */
-/************** About section **************/
+/************** About page **************/
 /* *************************************** */
 
 .empty-div {
@@ -1034,6 +1083,17 @@ h3 {
 
   .rebalance-table-body td {
     padding: 10px;
+  }
+
+  .assumption-container {
+    padding: 15px;
+  }
+  .assumption-item {
+    margin: 20px 15px;
+  }
+
+  .assumption {
+    font-size: 1rem;
   }
 }
 

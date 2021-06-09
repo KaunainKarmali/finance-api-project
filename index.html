@@ -34,7 +34,9 @@
           </div>
           <ul class="links-container">
             <li class="navbar-link"><a href="./about.html">About</a></li>
-            <li class="navbar-link"><a href="#">Assumptions</a></li>
+            <li class="navbar-link">
+              <a href="./index.html#assumptions">Assumptions</a>
+            </li>
             <li class="navbar-link">
               <a href="./index.html#rebalancing-tool">Tool</a>
             </li>
@@ -53,142 +55,181 @@
 
     <div class="wrapper">
       <main>
-        <h2 id="rebalancing-tool" class="section-title">Rebalancing tool</h2>
-        <div class="user-input-container">
-          <!-- Start: step 1 -->
-          <div class="investment-container">
-            <label class="investment-label" for="investment"
-              >Amount to invest</label
-            >
-            <input
-              class="investment-input"
-              type="number"
-              placeholder="$10,000"
-              name="investment"
-              id="investment"
-              min="0"
-              step=".01"
-            />
-          </div>
-          <!-- End: step 1 -->
-
-          <!-- Start: step 1 -->
-          <div class="search-container">
-            <label class="investment-label" for="search"
-              >Select your investments (limit 5)</label
-            >
-
-            <div class="search-bar-wrapper">
-              <div class="search-bar-container">
-                <!-- Start: Search bar -->
-                <form
-                  class="search-form"
-                  action=""
-                  method="get"
-                  autocomplete="off"
-                >
-                  <div class="search-bar">
-                    <input
-                      class="search-input"
-                      type="search"
-                      name="search"
-                      value=""
-                      placeholder="Search ticker or company"
-                    />
-                    <div class="icons">
-                      <button class="reset-btn" type="reset">
-                        <i class="fas fa-times reset-icon"></i>
-                      </button>
-                      <div class="vertical-row"></div>
-                      <button class="search-btn" type="submit">
-                        <i class="fas fa-search search-icon"></i>
-                      </button>
-                    </div>
-                  </div>
-                </form>
-                <!-- End: Search bar -->
-
-                <!-- Start: Display search suggestions -->
-                <div class="search-result-container hide"></div>
-                <!-- End: Display search suggestions -->
-              </div>
-
-              <!-- Start: Display investment selections -->
-              <div class="selections-container"></div>
-              <!-- End: Display investment selections -->
+        <section>
+          <h2 id="rebalancing-tool" class="section-title">Rebalancing tool</h2>
+          <div class="user-input-container">
+            <!-- Start: step 1 -->
+            <div class="investment-container">
+              <label class="investment-label" for="investment"
+                >Amount to invest</label
+              >
+              <input
+                class="investment-input"
+                type="number"
+                placeholder="$10,000"
+                name="investment"
+                id="investment"
+                min="0"
+                step=".01"
+              />
             </div>
-          </div>
-          <!-- End: step 2 -->
-        </div>
+            <!-- End: step 1 -->
 
-        <!-- Start: Rebalancing tool -->
-        <div class="portfolio-container">
-          <label class="investment-label" for="rebalance">
-            Your investment and desired allocation
-          </label>
-          <form
-            action=""
-            method="get"
-            class="portfolio-form"
-            autocomplete="off"
-          >
-            <table class="portfolio-table hide">
+            <!-- Start: step 1 -->
+            <div class="search-container">
+              <label class="investment-label" for="search"
+                >Select your investments (limit 5)</label
+              >
+
+              <div class="search-bar-wrapper">
+                <div class="search-bar-container">
+                  <!-- Start: Search bar -->
+                  <form
+                    class="search-form"
+                    action=""
+                    method="get"
+                    autocomplete="off"
+                  >
+                    <div class="search-bar">
+                      <input
+                        class="search-input"
+                        type="search"
+                        name="search"
+                        value=""
+                        placeholder="Search ticker or company"
+                      />
+                      <div class="icons">
+                        <button class="reset-btn" type="reset">
+                          <i class="fas fa-times reset-icon"></i>
+                        </button>
+                        <div class="vertical-row"></div>
+                        <button class="search-btn" type="submit">
+                          <i class="fas fa-search search-icon"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                  <!-- End: Search bar -->
+
+                  <!-- Start: Display search suggestions -->
+                  <div class="search-result-container hide"></div>
+                  <!-- End: Display search suggestions -->
+                </div>
+
+                <!-- Start: Display investment selections -->
+                <div class="selections-container"></div>
+                <!-- End: Display investment selections -->
+              </div>
+            </div>
+            <!-- End: step 2 -->
+          </div>
+
+          <!-- Start: Rebalancing tool -->
+          <div class="portfolio-container">
+            <label class="investment-label" for="rebalance">
+              Your investment and desired allocation
+            </label>
+            <form
+              action=""
+              method="get"
+              class="portfolio-form"
+              autocomplete="off"
+            >
+              <table class="portfolio-table hide">
+                <thead>
+                  <tr class="portfolio-headings">
+                    <th class="portfolio-headings-ticker">Ticker</th>
+                    <th class="portfolio-headings-company">Company</th>
+                    <th class="portfolio-headings-cost">Total invested</th>
+                    <th class="portfolio-headings-qty">Total shares held</th>
+                    <th class="portfolio-headings-target-allocation">
+                      Target allocation (%)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="portfolio-table-body">
+                  <tr class="spacer"></tr>
+                </tbody>
+              </table>
+              <div class="rebalance-btn-container hide">
+                <input
+                  class="rebalance-btn"
+                  type="submit"
+                  name="rebalance"
+                  value="Calculate"
+                />
+              </div>
+            </form>
+          </div>
+          <!-- End: Rebalancing tool -->
+
+          <!-- Start: Results section -->
+
+          <div class="results-wrapper" style="display: none"></div>
+          <!-- End: Results section -->
+
+          <!-- Start: Rebalancing results -->
+          <div class="rebalance-container" style="display: none">
+            <table class="rebalance-table">
               <thead>
-                <tr class="portfolio-headings">
-                  <th class="portfolio-headings-ticker">Ticker</th>
-                  <th class="portfolio-headings-company">Company</th>
-                  <th class="portfolio-headings-cost">Total invested</th>
-                  <th class="portfolio-headings-qty">Total shares held</th>
-                  <th class="portfolio-headings-target-allocation">
-                    Target allocation (%)
+                <tr class="rebalance-headings">
+                  <th class="rebalance-ticker">Ticker</th>
+                  <th class="rebalance-company">Company</th>
+                  <th class="rebalance-price">Unit price</th>
+                  <th class="rebalance-qty">Quantity to purchase</th>
+                  <th class="rebalance-investment">Investment to date</th>
+                  <th class="rebalance-incremental">Incremental investment</th>
+                  <th class="rebalance-value">Total value</th>
+                  <th class="rebalance-target-alloc">Target allocation (%)</th>
+                  <th class="rebalance-expected-alloc">
+                    Expected allocation (%)
                   </th>
                 </tr>
               </thead>
-              <tbody class="portfolio-table-body">
+              <tbody class="rebalance-table-body">
                 <tr class="spacer"></tr>
               </tbody>
             </table>
-            <div class="rebalance-btn-container hide">
-              <input
-                class="rebalance-btn"
-                type="submit"
-                name="rebalance"
-                value="Calculate"
-              />
+          </div>
+          <!-- End: Rebalancing results -->
+        </section>
+
+        <section id="assumptions" class="assumptions-section">
+          <h2 class="section-title">Assumptions and limitations</h2>
+          <div class="assumption-container">
+            <div class="assumption-item">
+              <i class="fas fa-check-square check-icon"></i>
+              <h3 class="assumption">
+                Calculations are based on the most recent closing price, which
+                may vary from real time prices.
+              </h3>
             </div>
-          </form>
-        </div>
-        <!-- End: Rebalancing tool -->
-
-        <!-- Start: Results section -->
-
-        <div class="results-wrapper" style="display: none"></div>
-        <!-- End: Results section -->
-
-        <!-- Start: Rebalancing results -->
-        <div class="rebalance-container" style="display: none">
-          <table class="rebalance-table">
-            <thead>
-              <tr class="rebalance-headings">
-                <th class="rebalance-ticker">Ticker</th>
-                <th class="rebalance-company">Company</th>
-                <th class="rebalance-price">Unit price</th>
-                <th class="rebalance-qty">Quantity to purchase</th>
-                <th class="rebalance-investment">Investment to date</th>
-                <th class="rebalance-incremental">Incremental investment</th>
-                <th class="rebalance-value">Total value</th>
-                <th class="rebalance-target-alloc">Target allocation (%)</th>
-                <th class="rebalance-expected-alloc">
-                  Expected allocation (%)
-                </th>
-              </tr>
-            </thead>
-            <tbody class="rebalance-table-body">
-              <tr class="spacer"></tr>
-            </tbody>
-          </table>
-        </div>
-        <!-- End: Rebalancing results -->
+            <div class="assumption-item">
+              <i class="fas fa-check-square check-icon"></i>
+              <h3 class="assumption">
+                Due to API limitations, our tool can calculate the prices for 5
+                securities each minute.
+              </h3>
+            </div>
+            <div class="assumption-item">
+              <i class="fas fa-check-square check-icon"></i>
+              <h3 class="assumption">
+                Our tool can only be used to search for securities listed on the
+                NASDAQ or NYSE.
+              </h3>
+            </div>
+            <div class="assumption-item">
+              <i class="fas fa-check-square check-icon"></i>
+              <h3 class="assumption">All amounts are expressed in USD.</h3>
+            </div>
+            <div class="assumption-item">
+              <i class="fas fa-check-square check-icon"></i>
+              <h3 class="assumption">
+                Your results may be rounded to the nearest whole number.
+              </h3>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 
