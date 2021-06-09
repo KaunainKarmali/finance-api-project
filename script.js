@@ -859,12 +859,12 @@ app.getSecurityPrice = (symbol) => {
 // Get search options from the api
 app.getSearchSuggestions = (keywords) => {
   const promise = $.ajax({
-    // url: app.apiEndpointFinMod,
+    url: app.apiEndpointFinMod,
     method: "GET",
     dataType: "JSON",
     data: {
       apikey: app.apiKeyFinMod,
-      // query: keywords,
+      query: keywords,
       limit: "10",
     },
   });
@@ -1070,15 +1070,6 @@ app.calcSecurityPurchase = (
     incrementalQuantity = Math.floor((targetValue - cost) / price);
   }
 
-  console.log("symbol " + symbol);
-  console.log("investment " + investment);
-  console.log("cost " + cost);
-  console.log("allocation " + allocation);
-  console.log("total value " + targetValue);
-  console.log("incremental quantity " + incrementalQuantity);
-  console.log("price " + price);
-  console.log("");
-
   app.selection[symbol].quantity = incrementalQuantity;
 };
 
@@ -1143,39 +1134,39 @@ app.submitUserSearch = () => {
   app.$searchInput.on("keypress", () => {
     // get the user's search result and submit api request
     const search = app.$searchInput.val();
-    app.getSearchSuggestions(search);
+    // app.getSearchSuggestions(search);
 
     // TEMPORARY COMMENTED OUT
-    // const searchPromise = app.getSearchSuggestions(search);
-    // searchPromise
-    //   .then((data) => {
-    // Empty previous results
-    app.$searchResultContainer.empty();
+    const searchPromise = app.getSearchSuggestions(search);
+    searchPromise
+      .then((data) => {
+        // Empty previous results
+        app.$searchResultContainer.empty();
 
-    data = app.sampleSuggestions;
+        // data = app.sampleSuggestions;
 
-    // Display no results if there are none
-    if (data.length === 0) {
-      app.displayNoResults();
-    }
+        // Display no results if there are none
+        if (data.length === 0) {
+          app.displayNoResults();
+        }
 
-    // Loop through search results and display it to the user
-    else {
-      data.forEach((result) => {
-        app.displayEachSearchSuggestion(result.symbol, result.name);
+        // Loop through search results and display it to the user
+        else {
+          data.forEach((result) => {
+            app.displayEachSearchSuggestion(result.symbol, result.name);
+          });
+        }
+
+        // Show results container
+        app.$searchResultContainer.removeClass("hide");
+
+        // TEMPORARY COMMENTED OUT
+      })
+      .catch((error) => {
+        // If error occurs, show no search results found and log error
+        app.displayNoResults();
+        console.log(error);
       });
-    }
-
-    // Show results container
-    app.$searchResultContainer.removeClass("hide");
-
-    // TEMPORARY COMMENTED OUT
-    // })
-    // .catch((error) => {
-    //   // If error occurs, show no search results found and log error
-    //   app.displayNoResults();
-    //   console.log(error);
-    // });
   });
 };
 
@@ -1210,7 +1201,6 @@ app.selectSecurity = () => {
     // Tracks whether the security is already added or not
     const addSecurity = $this.find(".add-btn").length > 0 ? true : false; // true if its a new security to add
 
-    console.log(app.getSize(app.selection));
     // Only add unique selections
     if (
       app.selection[symbol] === undefined &&
