@@ -247,6 +247,7 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 500;
   background-color: var(--color-neutral);
+  overflow: overlay;
 }
 
 .hide {
@@ -254,14 +255,13 @@ body {
 }
 
 .wrapper {
-  padding: 30px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   align-content: center;
   flex-wrap: wrap;
-  max-width: 900px;
-  margin: 0px auto;
+  max-width: 1200px;
+  margin: 30px auto;
 }
 
 td {
@@ -275,6 +275,10 @@ th {
   vertical-align: bottom;
 }
 
+main {
+  width: 100%;
+}
+
 /* *************************************** */
 /******************* Navbar ****************/
 /* *************************************** */
@@ -283,9 +287,10 @@ nav {
   justify-content: space-between;
   align-items: center;
   background-color: var(--color-primary);
-  padding: 0px 30px;
+  padding: 0px 40px;
   height: 4rem;
   position: fixed;
+  z-index: 100;
   top: 0;
   width: 100%;
 }
@@ -343,7 +348,7 @@ nav {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  height: 90vh;
+  height: 100vh;
   background-color: var(--color-primary);
   color: var(--color-secondary);
 }
@@ -371,12 +376,12 @@ h2 {
 
 /* Whole scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: var(--color-light-1);
+  background: transparent;
 }
 
 /* Handle */
@@ -393,21 +398,28 @@ h2 {
 /* *************************************** */
 /************** Step 1 styles **************/
 /* *************************************** */
-.investment-container {
+.user-input-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   width: 100%;
-  font-size: 2rem;
-  margin: 30px 0;
+}
+
+.investment-container {
+  width: 30%;
+  font-size: 1rem;
+  margin: 15px 15px 15px 0px;
   background-color: var(--color-light-1);
   padding: 30px;
   border-radius: 2px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   font-family: "Montserrat", sans-serif;
+  display: block;
 }
 
 .investment-label {
   display: block;
-  margin: 10px 0;
-  font-family: "Montserrat", sans-serif;
+  margin: 0px 0px 10px 0px;
   font-weight: 700;
 }
 
@@ -415,9 +427,14 @@ h2 {
   border-radius: 5px;
   border: 2px solid var(--color-secondary-dark);
   width: 100%;
-  padding: 20px;
+  padding: 10px;
   font-family: "Montserrat", sans-serif;
   display: block;
+}
+
+.investment-input:focus {
+  outline: none;
+  border: 2px solid var(--color-primary-light);
 }
 
 /* *************************************** */
@@ -425,14 +442,15 @@ h2 {
 /* *************************************** */
 /* Search bar */
 .search-container {
-  width: 100%;
-  font-size: 2rem;
-  margin: 30px 0px;
+  width: 70%;
+  font-size: 1rem;
+  margin: 15px 0px 15px 15px;
   background-color: var(--color-light-1);
   padding: 30px;
   border-radius: 2px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   font-family: "Montserrat", sans-serif;
+  display: block;
 }
 
 .investment-selection-header {
@@ -485,7 +503,7 @@ h2 {
 
 .search-bar {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -495,15 +513,14 @@ h2 {
   width: 100%;
   border-radius: 5px;
   color: var(--color-primary);
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--color-secondary-dark);
   font-size: 1rem;
-  background-color: var(--color-secondary);
 }
 
 .search-input:focus {
   outline: 0;
   border-width: 2px solid;
-  border-color: var(--color-secondary-dark);
+  border-color: var(--color-primary-light);
 }
 
 .icons {
@@ -678,22 +695,6 @@ h2 {
   text-align: left;
   color: var(--color-secondary-dark);
 }
-
-/* .portfolio-headings-ticker {
-  width: 20%;
-}
-
-.portfolio-headings-company {
-  width: 40%;
-}
-
-.portfolio-headings-cost {
-  width: 20%;
-}
-
-.portfolio-headings-target-allocation {
-  width: 20%;
-} */
 
 .spacer {
   height: 10px;
