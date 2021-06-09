@@ -829,6 +829,15 @@ app.numberWithCommas = (numb) => {
   return numb.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
 };
 
+// Get the total number of items in an object
+app.getSize = (object) => {
+  let size = 0;
+  for (key in object) {
+    if (object.hasOwnProperty(key)) size++;
+  }
+  return size;
+};
+
 // ******************* FUNCTIONS *******************
 // Gets the security price from the api
 app.getSecurityPrice = (symbol) => {
@@ -962,6 +971,18 @@ app.displayInPortfolio = (symbol, name) => {
           type="number"
           name="cost"
           placeholder="$1,000"
+          min="0"
+          step=".01"
+        />
+      </td>
+      <td>
+        <input
+          class="portfolio-input"
+          type="number"
+          name="quantity-held"
+          placeholder="10"
+          min="0"
+          step=".01"
         />
       </td>
       <td>
@@ -970,6 +991,9 @@ app.displayInPortfolio = (symbol, name) => {
           type="number"
           name="allocation"
           placeholder="100%"
+          min="0"
+          max="100"
+          step=".01"
         />
       </td>
     </tr>
@@ -1031,33 +1055,31 @@ app.calcSecurityPurchase = (
   symbol,
   { cost, price, allocation },
   investment,
-  remainingInvestment,
   portfolioCost
 ) => {
   // Determine what the value of the security should be to achieve the target allocation ratio
   const targetValue =
-    (parseFloat(portfolioCost) + parseFloat(investment)) *
+    (parseFloat(investment) + parseFloat(portfolioCost)) *
     (parseFloat(allocation) / 100);
-  // console.log("Target value: " + targetValue);
 
-  // Determine the incremental value to invest to achieve the target allocation ratio
-  const incrementalValue = Math.max(targetValue - cost, 0);
-  // console.log("Incremental value: " + incrementalValue);
+  // Determine how many additional shares to purchase or sell to achieve the target allocation ratio
+  let incrementalQuantity = 0;
+  if (targetValue > cost) {
+    incrementalQuantity = Math.floor((targetValue - cost) / price);
+  } else {
+    incrementalQuantity = Math.floor((targetValue - cost) / price);
+  }
 
-  // Determine the quantity to purchase to achieve the target allocation ratio
-  // Limit the purchase to avoid having the investment amount go negative
-  const quantity = Math.min(
-    Math.floor(incrementalValue / price),
-    Math.floor(remainingInvestment / price)
-  );
-  // console.log("Quantity: " + quantity);
+  console.log("symbol " + symbol);
+  console.log("investment " + investment);
+  console.log("cost " + cost);
+  console.log("allocation " + allocation);
+  console.log("total value " + targetValue);
+  console.log("incremental quantity " + incrementalQuantity);
+  console.log("price " + price);
+  console.log("");
 
-  // Update the global securities object
-  app.selection[symbol].quantity = quantity;
-
-  // Update the remaining investment amount
-  remainingInvestment = (remainingInvestment - price * quantity).toFixed(2);
-  return remainingInvestment;
+  app.selection[symbol].quantity = incrementalQuantity;
 };
 
 app.calcInvestmentBalance = (object) => {
@@ -1073,7 +1095,7 @@ app.calcInvestmentBalance = (object) => {
 app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
   const resultsHTML = `
     <div class="results-div">
-      <h2 class="rebalance-header">Your results</h2>
+      <h3 class="rebalance-header">Your results</h3>
       <div class="results-container">
         <div class="result-item">
           <div class="result-title">Total portfolio value</div>
@@ -1188,8 +1210,14 @@ app.selectSecurity = () => {
     // Tracks whether the security is already added or not
     const addSecurity = $this.find(".add-btn").length > 0 ? true : false; // true if its a new security to add
 
+    console.log(app.getSize(app.selection));
     // Only add unique selections
-    if (app.selection[symbol] === undefined && addSecurity) {
+    if (
+      app.selection[symbol] === undefined &&
+      addSecurity &&
+      app.getSize(app.selection) < 5
+      // Allows a maximum of 5 securities to be searched due to API limits
+    ) {
       app.selection = {
         ...app.selection,
         [symbol]: {
@@ -1284,6 +1312,7 @@ app.portfolioSubmission = () => {
     );
     const $costs = $("input[name=cost]");
     const $allocations = $("input[name=allocation]");
+    const $quantityHeld = $("input[name=quantity-held]");
 
     // Get total allocation to check if its equals 100% before proceeding with calculations
     let totalAllocation = 0;
@@ -1294,22 +1323,25 @@ app.portfolioSubmission = () => {
     // Get user's total investment input
     let investment = $("#investment").val();
     investment = parseInt(investment);
-    let remainingInvestment = investment;
 
     // Proceed if the total allocation by the user is 100%
     if (totalAllocation === 100 && investment > 0) {
       // Loop through each ticker and update global object with the user's inputs
       $allocations.map((index) => {
         const ticker = $tickers[index];
-        app.selection = {
-          ...app.selection,
-          [ticker]: {
-            ...app.selection[ticker],
-            cost:
-              $costs[index].value === "" ? 0 : parseFloat($costs[index].value),
-            allocation: parseFloat($allocations[index].value),
-          },
-        };
+
+        // Store total cost
+        app.selection[ticker].cost =
+          $costs[index].value === "" ? 0 : parseFloat($costs[index].value);
+        // Store target allocation
+        app.selection[ticker].allocation = parseFloat(
+          $allocations[index].value
+        );
+        // Store quantity held
+        app.selection[ticker].quantityHeld =
+          $quantityHeld[index].value === ""
+            ? 0
+            : parseFloat($quantityHeld[index].value);
       });
 
       // Calculate the total cost of the portfolio
@@ -1324,6 +1356,9 @@ app.portfolioSubmission = () => {
             // get the closing price of the first object and save it in the global object
             const timeSeries = data["Time Series (Daily)"];
             const firstKey = Object.keys(timeSeries)[0];
+            console.log(firstKey);
+            console.log(timeSeries[firstKey]);
+
             const price = parseFloat(timeSeries[firstKey]["5. adjusted close"]);
             app.selection[symbol].price = price;
 
@@ -1332,7 +1367,6 @@ app.portfolioSubmission = () => {
               symbol,
               app.selection[symbol],
               investment,
-              remainingInvestment,
               portfolioCost
             );
 

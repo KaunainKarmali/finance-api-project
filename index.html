@@ -26,24 +26,25 @@
     <header class="header">
       <!-- Hero landing page -->
       <nav>
-        <div class="logo-container">
-          <a href="#">
-            <i class="fas fa-balance-scale logo"></i>
-          </a>
+        <div class="nav-container">
+          <div class="logo-container">
+            <a href="./index.html">
+              <i class="fas fa-balance-scale logo"></i>
+            </a>
+          </div>
+          <ul class="links-container">
+            <li class="navbar-link"><a href="./about.html">About</a></li>
+            <li class="navbar-link"><a href="#">Assumptions</a></li>
+            <li class="navbar-link">
+              <a href="./index.html#rebalancing-tool">Tool</a>
+            </li>
+          </ul>
         </div>
-        <ul class="links-container">
-          <li class="navbar-link"><a href="#">About</a></li>
-          <li class="navbar-link"><a href="#">Tool</a></li>
-          <li class="navbar-link"><a href="#">Assumptions</a></li>
-          <li class="navbar-link"><a href="#">Coming soon</a></li>
-        </ul>
       </nav>
 
+      <!-- Hero landing page -->
       <div class="hero-landing">
-        <h1>
-          Make investing easy with
-          <span class="myFinancePal">myFinancePal</span>
-        </h1>
+        <h1>Make investing easy with myFinancePal</h1>
         <h2>
           A portfolio rebalancing tool to complement your investing strategy
         </h2>
@@ -52,6 +53,7 @@
 
     <div class="wrapper">
       <main>
+        <h2 id="rebalancing-tool" class="section-title">Rebalancing tool</h2>
         <div class="user-input-container">
           <!-- Start: step 1 -->
           <div class="investment-container">
@@ -65,7 +67,7 @@
               name="investment"
               id="investment"
               min="0"
-              step="1000"
+              step=".01"
             />
           </div>
           <!-- End: step 1 -->
@@ -73,7 +75,7 @@
           <!-- Start: step 1 -->
           <div class="search-container">
             <label class="investment-label" for="search"
-              >Select your investments</label
+              >Select your investments (limit 5)</label
             >
 
             <div class="search-bar-wrapper">
@@ -136,6 +138,7 @@
                   <th class="portfolio-headings-ticker">Ticker</th>
                   <th class="portfolio-headings-company">Company</th>
                   <th class="portfolio-headings-cost">Total invested</th>
+                  <th class="portfolio-headings-qty">Total shares held</th>
                   <th class="portfolio-headings-target-allocation">
                     Target allocation (%)
                   </th>
@@ -150,7 +153,7 @@
                 class="rebalance-btn"
                 type="submit"
                 name="rebalance"
-                value="Rebalance portfolio"
+                value="Calculate"
               />
             </div>
           </form>

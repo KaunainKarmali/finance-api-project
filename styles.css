@@ -240,6 +240,7 @@ html {
   --color-light-2: #e3f6f5;
 
   --color-neutral: #f0f5f9;
+  --color-contrast: #fce38a;
 }
 
 body {
@@ -277,22 +278,29 @@ th {
 
 main {
   width: 100%;
+  padding: 0px 40px;
 }
 
 /* *************************************** */
 /******************* Navbar ****************/
 /* *************************************** */
 nav {
+  background-color: var(--color-primary);
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.nav-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--color-primary);
   padding: 0px 40px;
   height: 4rem;
-  position: fixed;
-  z-index: 100;
-  top: 0;
   width: 100%;
+  max-width: 1200px;
 }
 
 .logo-container > a {
@@ -307,9 +315,14 @@ nav {
   text-decoration: none;
 }
 
+.logo-container:hover .logo {
+  color: var(--color-secondary-dark);
+}
+
 .logo {
   color: var(--color-secondary);
   font-size: 2rem;
+  transition: all 0.5s;
 }
 
 .links-container {
@@ -318,8 +331,8 @@ nav {
   padding: 0px;
   margin: 0px;
   width: 40%;
-  min-width: 300px;
-  max-width: 500px;
+  min-width: 200px;
+  max-width: 300px;
 }
 
 .navbar-link {
@@ -330,10 +343,15 @@ nav {
   color: var(--color-secondary);
   text-decoration: none;
   font-size: 1rem;
+  transition: all 0.5s;
 }
 
 .navbar-link > a:visited {
   color: var(--color-secondary);
+}
+
+.navbar-link:hover > a {
+  color: var(--color-secondary-dark);
 }
 
 /* *************************************** */
@@ -341,6 +359,9 @@ nav {
 /* *************************************** */
 .header {
   margin: 0px auto;
+  display: flex;
+  justify-content: center;
+  background-color: var(--color-primary);
 }
 
 .hero-landing {
@@ -362,7 +383,8 @@ h1 {
   text-align: center;
 }
 
-h2 {
+h2,
+h3 {
   width: 60%;
   color: var(--color-secondary-dark);
   font-size: 2rem;
@@ -381,22 +403,19 @@ h2 {
 /* Whole scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background-color: var(--color-primary-light);
+  /* background: transparent; */
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--color-secondary);
-  border-radius: 30px;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
   background: var(--color-secondary-dark);
+  border-radius: 30px;
 }
 
 /* *************************************** */
@@ -473,17 +492,17 @@ h2 {
 }
 
 .search-bar-container {
-  width: 48%;
+  width: 50%;
 }
 
 .search-result-container {
   position: absolute;
   padding: 10px 0px;
-  margin: 0 5px;
+  margin: 0;
   border-radius: 5px;
   border: 1px solid;
   font-size: 1rem;
-  width: 48%;
+  width: 50%;
   font-weight: 500;
   background-color: var(--color-secondary);
   z-index: 10;
@@ -762,11 +781,11 @@ h2 {
 /************** Overall results **************/
 /* ******************************************* */
 .rebalance-header {
-  /* background-color: var(--color-secondary); */
   display: inline-block;
   color: var(--color-light-1);
   padding: 10px;
   border-radius: 5px;
+  text-align: left;
 }
 /* .overall-results-container {
   width: 100%;
@@ -798,6 +817,14 @@ h2 {
   flex-wrap: wrap;
   justify-content: space-evenly;
   align-content: flex-start;
+}
+
+.rebalance-header {
+  width: 100%;
+}
+
+.result-item {
+  margin: 5px;
 }
 
 .result-title {
@@ -868,23 +895,206 @@ h2 {
 } */
 
 /* *************************************** */
+/************** About section **************/
+/* *************************************** */
+
+.empty-div {
+  height: 4rem;
+  background-color: var(--color-neutral);
+}
+
+.about-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  align-content: center;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 40px;
+}
+
+.instructions-section {
+  margin: 30px auto 0px;
+}
+
+.instructions-card {
+  width: 70%;
+  margin: 30px auto;
+  max-width: 700px;
+  min-width: 250px;
+  display: flex;
+  justify-content: flex-end;
+  height: 300px;
+  font-size: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.23);
+  background-color: var(--color-light-1);
+  border: 3px solid var(--color-light-1);
+  color: var(--color-primary-light);
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.instructions-card:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.instructions-img {
+  width: 60%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.instructions {
+  width: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.section-title,
+.section-subtitle {
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+  color: var(--color-primary-light);
+}
+
+.tool-summary {
+  font-size: 1rem;
+  text-align: center;
+  margin: 0px auto;
+  width: 80%;
+}
+
+.instruction-subheading {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.instruction-text {
+  font-size: 1rem;
+  padding: 0;
+  margin: 0;
+}
+
+/* *************************************** */
 /************** Media queries **************/
 /* *************************************** */
-@media (max-width: 850px) {
+@media (max-width: 990px) {
+  .instructions-card {
+    width: 80%;
+  }
+}
+
+@media (max-width: 880px) {
+  .instructions-card {
+    width: 90%;
+  }
+
+  .user-input-container {
+    flex-wrap: wrap;
+  }
+
   .investment-container {
     width: 100%;
+    margin-right: 0px;
   }
 
   .search-container {
     width: 100%;
+    margin-left: 0px;
   }
 }
 
-@media (max-width: 450px) {
+@media (max-width: 800px) {
+  .about-wrapper {
+    padding: 0px;
+    margin: 0px auto;
+  }
+
+  .instructions-card {
+    width: 100%;
+  }
+
+  .instruction-subheading {
+    font-size: 1.5rem;
+  }
+
+  .instruction-text {
+    font-size: 0.8rem;
+  }
+
+  .rebalance-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .rebalance-table-body td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 670px) {
   .search-bar-container {
     width: 100%;
   }
   .selections-container {
     width: 100%;
+  }
+  .search-result-container {
+    width: 100%;
+  }
+
+  .rebalance-header,
+  .result-item {
+    text-align: center;
+  }
+
+  .portfolio-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .result-value {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 550px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  .about-main {
+    padding: 0px 20px;
+    margin: 0px auto;
+  }
+
+  .instructions-card {
+    min-height: 200px;
+  }
+
+  .instruction-subheading {
+    font-size: 1rem;
+  }
+
+  .instruction-text {
+    font-size: 0.8rem;
+  }
+
+  .instructions-img {
+    width: 55%;
+  }
+
+  .rebalance-btn {
+    font-size: 0.8rem;
   }
 }
