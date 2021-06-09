@@ -1136,7 +1136,6 @@ app.submitUserSearch = () => {
     const search = app.$searchInput.val();
     // app.getSearchSuggestions(search);
 
-    // TEMPORARY COMMENTED OUT
     const searchPromise = app.getSearchSuggestions(search);
     searchPromise
       .then((data) => {
@@ -1159,8 +1158,6 @@ app.submitUserSearch = () => {
 
         // Show results container
         app.$searchResultContainer.removeClass("hide");
-
-        // TEMPORARY COMMENTED OUT
       })
       .catch((error) => {
         // If error occurs, show no search results found and log error
@@ -1231,12 +1228,6 @@ app.selectSecurity = () => {
       app.$searchResultContainer.addClass("hide");
       app.$searchResultContainer.empty();
       app.$searchInput.val("");
-
-      // TEMPORARY COMMENTED OUT
-      // const dataPromise = app.getTimeSeriesData(symbol);
-      // dataPromise
-      //   .then((data) => console.log(data))
-      //   .catch((error) => console.log(error));
     } else if (addSecurity !== true) {
       // Remove security from the collection
       delete app.selection[symbol];
@@ -1353,7 +1344,7 @@ app.portfolioSubmission = () => {
             app.selection[symbol].price = price;
 
             // Determine the quantity of securities to purchase and update the remaining amount to invest
-            remainingInvestment = app.calcSecurityPurchase(
+            app.calcSecurityPurchase(
               symbol,
               app.selection[symbol],
               investment,
