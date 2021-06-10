@@ -1,4 +1,4 @@
-app.sampleSuggestions = [
+export const sampleSuggestions = [
   {
     symbol: "VO",
     name: "Vanguard Mid-Cap Index Fund ETF Shares",

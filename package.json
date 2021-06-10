@@ -1,0 +1,20 @@
+{
+  "name": "finance-api-project",
+  "version": "1.0.0",
+  "description": "portfolio rebalancing tool",
+  "main": "script.js",
+  "type": "module",
+  "scripts": {
+    "test": "npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KaunainKarmali/finance-api-project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KaunainKarmali/finance-api-project/issues"
+  },
+  "homepage": "https://github.com/KaunainKarmali/finance-api-project#readme"
+}

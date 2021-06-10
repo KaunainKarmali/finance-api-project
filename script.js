@@ -1,3 +1,8 @@
+// ******************* IMPORTS *******************
+import { sampleSuggestions } from "./data.js";
+
+console.log(sampleSuggestions);
+
 // ******************* NAMESPACE APP *******************
 const app = {};
 
