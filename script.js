@@ -1,3 +1,6 @@
+// ******************* NAMESPACE APP *******************
+const app = {};
+
 // ******************* API DETAILS *******************
 app.apiKeyAlpha = "MWLXKKEHU3XOJ8O9";
 app.apiEndpointAlpha = "https://www.alphavantage.co/query";
@@ -49,7 +52,11 @@ app.calcInvestmentBalance = (object) => {
   let investmentBal = 0;
 
   for (const [symbol, detail] of Object.entries(object)) {
-    investmentBal += parseFloat(detail.price) * parseFloat(detail.quantity);
+    investmentBal += detail.price
+      ? detail.price
+      : 0 * detail.quantity
+      ? detail.quantity
+      : 0;
   }
 
   return parseInt(investmentBal);
@@ -280,6 +287,25 @@ app.displayResultRow = (
   $(`#rebalance-${symbol}`).show("slow");
 };
 
+app.displayNoResultFound = (symbol) => {
+  // Create HTML element to be rendered
+  const resultRowHTML = `
+    <div id="rebalance-${symbol}" class="rebalance-data-row no-results-row" style="display: none;">
+      <div>No results found for <span class="ticker-alt">${symbol}</span></div>
+    </div>
+  `;
+
+  // Show the element on the page to the user
+  $(".rebalance-noresults-container").append(resultRowHTML);
+
+  // animate showing the new symbol
+  $(`#rebalance-${symbol}`).show("slow");
+};
+
+app.removeDisplayNoResultFound = () => {
+  $(".rebalance-noresults-container").empty();
+};
+
 app.calcSecurityPurchase = (
   symbol,
   { cost, price, allocation },
@@ -418,15 +444,12 @@ app.submitUserSearch = () => {
   app.$searchInput.on("keypress", () => {
     // get the user's search result and submit api request
     const search = app.$searchInput.val();
-    // app.getSearchSuggestions(search);
 
     const searchPromise = app.getSearchSuggestions(search);
     searchPromise
       .then((data) => {
         // Empty previous results
         app.$searchResultContainer.empty();
-
-        // data = app.sampleSuggestions;
 
         // Display no results if there are none
         if (data.length === 0) {
@@ -570,6 +593,7 @@ app.portfolioSubmission = () => {
     app.hideOverallResults();
     $(".results-div").remove();
     $(".rebalance-data-row").remove();
+    app.removeDisplayNoResultFound();
 
     // Get user's total investment input
     const $investment = $("#investment");
@@ -648,7 +672,7 @@ app.portfolioSubmission = () => {
 
       // Loop through securities to get current market price
       for (const [symbol, details] of Object.entries(app.selection)) {
-        const promise = app.getSecurityPrice(symbol);
+        let promise = app.getSecurityPrice(symbol);
 
         await promise
           .then((data) => {
@@ -675,15 +699,15 @@ app.portfolioSubmission = () => {
               portfolioCost
             );
           })
-          // TODO: Create error message to user
-          .catch((error) => console.log(error));
+          .catch((error) => {
+            app.displayNoResultFound(symbol);
+            console.log(error);
+          });
       }
 
       const investmentBal = app.calcInvestmentBalance(app.selection);
       app.displayOverallResults(portfolioCost, investment, investmentBal);
       app.showOverallResults();
-    } else {
-      // TODO: Create error message to user
     }
   });
 };
