@@ -1,10 +1,7 @@
 // ******************* IMPORTS *******************
-import { sampleSuggestions } from "./data.js";
+// import { sampleSuggestions } from "./data.js";
 
 console.log(sampleSuggestions);
-
-// ******************* NAMESPACE APP *******************
-const app = {};
 
 // ******************* API DETAILS *******************
 app.apiKeyAlpha = "MWLXKKEHU3XOJ8O9";
@@ -265,8 +262,6 @@ app.displayResultRow = (
 
   // animate showing the new symbol
   $(`#rebalance-${symbol}`).show("slow");
-
-  $(`.rebalance-container`).show("slow");
 };
 
 app.calcSecurityPurchase = (
@@ -340,9 +335,22 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
   `;
 
   $(".results-wrapper").append(resultsHTML);
+};
 
-  // animate showing the new symbol
+app.showOverallResults = () => {
+  // animate showing the overall results
   $(`.results-wrapper`).show("slow");
+
+  // animate showing the overall results
+  $(`.rebalance-container`).show("slow");
+};
+
+app.hideOverallResults = () => {
+  // animate hiding the overall results
+  $(`.results-wrapper`).hide("slow");
+
+  // animate hiding the overall results
+  $(`.rebalance-container`).hide("slow");
 };
 
 // ******************* EVENT LISTENERS *******************
@@ -501,6 +509,7 @@ app.portfolioSubmission = () => {
     e.preventDefault();
 
     // Clear previous results
+    app.hideOverallResults();
     $(".results-div").remove();
     $(".rebalance-data-row").remove();
 
@@ -583,6 +592,7 @@ app.portfolioSubmission = () => {
       const investmentBal = app.calcInvestmentBalance(app.selection);
 
       app.displayOverallResults(portfolioCost, investment, investmentBal);
+      app.showOverallResults();
     } else {
       // Create error message to user
     }
