@@ -287,6 +287,36 @@ section {
   width: auto;
 }
 
+/* *********************************************** */
+/************** Required field styles **************/
+/* *********************************************** */
+
+.required-field-popup {
+  position: absolute;
+  display: flex;
+  flex-wrap: nowrap;
+  margin: 5px 0;
+  font-size: 0.8rem;
+  font-family: "Roboto", sans-serif;
+  color: red;
+}
+
+.required-field-icon {
+  padding: 0;
+  margin: 0;
+  margin-right: 5px;
+}
+
+.required-field-text {
+  margin: 0;
+  padding: 0;
+}
+
+.required-field-input {
+  border: 2px solid #ff0202 !important;
+  background-color: #fef7f7 !important;
+}
+
 /* *************************************** */
 /******************* Navbar ****************/
 /* *************************************** */
@@ -435,6 +465,7 @@ h3 {
 }
 
 .investment-container {
+  position: relative;
   width: 30%;
   font-size: 1rem;
   margin: 15px 15px 15px 0px;
@@ -557,7 +588,7 @@ h3 {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  margin-left: -70px;
+  margin-left: -40px;
 }
 
 .vertical-row {
@@ -755,9 +786,17 @@ h3 {
   color: var(--color-light-1);
 }
 
+.portfolio-form {
+  position: relative;
+}
+
 .rebalance-btn-container {
   display: flex;
   justify-content: flex-end;
+  align-items: flex-end;
+  align-content: flex-end;
+  flex-wrap: wrap;
+  /* position: relative; */
 }
 
 .rebalance-btn {

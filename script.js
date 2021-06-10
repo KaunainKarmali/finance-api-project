@@ -1,8 +1,3 @@
-// ******************* IMPORTS *******************
-// import { sampleSuggestions } from "./data.js";
-
-console.log(sampleSuggestions);
-
 // ******************* API DETAILS *******************
 app.apiKeyAlpha = "MWLXKKEHU3XOJ8O9";
 app.apiEndpointAlpha = "https://www.alphavantage.co/query";
@@ -37,6 +32,27 @@ app.calcPortfolioCost = (object) => {
   }
 
   return portfolioCost;
+};
+
+// Calculates the total allocation of the portfolio
+app.calcPortfolioAllocation = (object) => {
+  let portfolioAllocation = 0;
+
+  for (const [symbol, detail] of Object.entries(object)) {
+    portfolioAllocation += detail.allocation;
+  }
+
+  return portfolioAllocation;
+};
+
+app.calcInvestmentBalance = (object) => {
+  let investmentBal = 0;
+
+  for (const [symbol, detail] of Object.entries(object)) {
+    investmentBal += parseFloat(detail.price) * parseFloat(detail.quantity);
+  }
+
+  return parseInt(investmentBal);
 };
 
 // Adds commas to a number
@@ -194,7 +210,7 @@ app.displayInPortfolio = (symbol, name) => {
         <input
           class="portfolio-input"
           type="number"
-          name="quantity-held"
+          name="quantityHeld"
           placeholder="10"
           min="0"
           step=".01"
@@ -230,9 +246,9 @@ app.removeFromPortfolio = (symbol) => {
 
 app.displayResultRow = (
   symbol,
-  portfolioCost,
+  { name, quantity, cost, price, allocation },
   investment,
-  { name, quantity, cost, price, allocation }
+  portfolioCost
 ) => {
   // Calculate the relevant values to be displayed to the user
   const incremental = Math.round(price * quantity);
@@ -271,9 +287,7 @@ app.calcSecurityPurchase = (
   portfolioCost
 ) => {
   // Determine what the value of the security should be to achieve the target allocation ratio
-  const targetValue =
-    (parseFloat(investment) + parseFloat(portfolioCost)) *
-    (parseFloat(allocation) / 100);
+  const targetValue = (investment + portfolioCost) * (allocation / 100);
 
   // Determine how many additional shares to purchase or sell to achieve the target allocation ratio
   let incrementalQuantity = 0;
@@ -284,16 +298,6 @@ app.calcSecurityPurchase = (
   }
 
   app.selection[symbol].quantity = incrementalQuantity;
-};
-
-app.calcInvestmentBalance = (object) => {
-  let investmentBal = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    investmentBal += parseFloat(detail.price) * parseFloat(detail.quantity);
-  }
-
-  return parseInt(investmentBal);
 };
 
 app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
@@ -351,6 +355,60 @@ app.hideOverallResults = () => {
 
   // animate hiding the overall results
   $(`.rebalance-container`).hide("slow");
+};
+
+app.showRequiredPopup = (parentSelector) => {
+  const popupHtml = `
+  <div class="required-field-popup">
+      <i class="fas fa-exclamation-circle required-field-icon"></i>
+      <p class="required-field-text">Required field</p>
+  </div>
+  `;
+
+  parentSelector.append(popupHtml);
+};
+
+app.removeRequiredPopup = (parentSelector) => {
+  parentSelector.children(".required-field-popup").remove();
+};
+
+app.highlightRequiredField = (inputSelector) => {
+  inputSelector.addClass("required-field-input");
+};
+
+app.unhighlightRequiredField = (inputSelector) => {
+  inputSelector.removeClass("required-field-input");
+};
+
+app.showAllocationPopup = (parentSelector) => {
+  const popupHtml = `
+  <div class="required-field-popup required-allocation-popup">
+      <i class="fas fa-exclamation-circle required-field-icon"></i>
+      <p class="required-field-text">Allocation does not equal 100%</p>
+  </div>
+  `;
+
+  parentSelector.append(popupHtml);
+};
+
+app.removeAllocationPopup = (parentSelector) => {
+  parentSelector.children(".required-allocation-popup").remove();
+};
+
+// Validates whether the input fields in the portfolio table are populated or not
+app.validateByInputName = (ticker, inputName) => {
+  const id = `#portfolio-${ticker}`;
+
+  const $selector = $(id).find(`input[name=${inputName}]`);
+
+  if ($selector.val() === "") {
+    app.highlightRequiredField($selector);
+    return false;
+  } else {
+    app.unhighlightRequiredField($selector);
+    app.selection[ticker][inputName] = parseFloat($selector.val());
+    return true;
+  }
 };
 
 // ******************* EVENT LISTENERS *******************
@@ -513,47 +571,80 @@ app.portfolioSubmission = () => {
     $(".results-div").remove();
     $(".rebalance-data-row").remove();
 
-    // Collect user inputs and update the global selections object
-    const $tickerSelectors = $(".portfolio-selection-row");
-    const $tickers = $tickerSelectors.map(
-      (item) => $tickerSelectors[item].id.split("portfolio-")[1]
-    );
-    const $costs = $("input[name=cost]");
-    const $allocations = $("input[name=allocation]");
-    const $quantityHeld = $("input[name=quantity-held]");
+    // Get user's total investment input
+    const $investment = $("#investment");
+    let $parentSelector = $(".investment-container");
 
-    // Get total allocation to check if its equals 100% before proceeding with calculations
-    let totalAllocation = 0;
-    $allocations.map((item) => {
-      totalAllocation += parseFloat($allocations[item].value);
+    // Tracks if all the validation checks are met
+    let validated = true;
+
+    // Validate investment field
+    if ($investment.val() === "") {
+      app.highlightRequiredField($investment);
+      app.showRequiredPopup($parentSelector);
+      validated = false;
+    } else {
+      app.unhighlightRequiredField($investment);
+      app.removeRequiredPopup($parentSelector);
+    }
+
+    // Validate if user has selected any securities
+
+    // Collect user inputs and update the global selections object
+    const $securities = $(".portfolio-selection-row");
+    $parentSelector = $(".search-bar-container");
+    const $searchInput = $(".search-input");
+
+    if ($securities.length === 0) {
+      app.highlightRequiredField($searchInput);
+      app.showRequiredPopup($parentSelector);
+      validated = false;
+    } else {
+      app.unhighlightRequiredField($searchInput);
+      app.removeRequiredPopup($parentSelector);
+    }
+
+    // Validate portfolio table inputs
+    let portfolioTableValidated = true;
+    $securities.map((index) => {
+      const ticker = $securities[index].id.split("-")[1];
+
+      // TO DO: update variable names
+      const nameValidated = app.validateByInputName(ticker, "cost");
+      const quantityValidated = app.validateByInputName(ticker, "quantityHeld");
+      const allocationValidate = app.validateByInputName(ticker, "allocation");
+
+      if (!nameValidated || !quantityValidated || !allocationValidate) {
+        portfolioTableValidated = false;
+      }
     });
 
-    // Get user's total investment input
-    let investment = $("#investment").val();
-    investment = parseInt(investment);
+    $parentSelector = $(".portfolio-form");
+    if (!portfolioTableValidated) {
+      app.showRequiredPopup($parentSelector);
+      validated = false;
+    } else {
+      app.removeRequiredPopup($parentSelector);
+    }
 
-    // Proceed if the total allocation by the user is 100%
-    if (totalAllocation === 100 && investment > 0) {
-      // Loop through each ticker and update global object with the user's inputs
-      $allocations.map((index) => {
-        const ticker = $tickers[index];
+    // Validate portfolio allocation is 100 or not
+    const totalAllocation = app.calcPortfolioAllocation(app.selection);
 
-        // Store total cost
-        app.selection[ticker].cost =
-          $costs[index].value === "" ? 0 : parseFloat($costs[index].value);
-        // Store target allocation
-        app.selection[ticker].allocation = parseFloat(
-          $allocations[index].value
-        );
-        // Store quantity held
-        app.selection[ticker].quantityHeld =
-          $quantityHeld[index].value === ""
-            ? 0
-            : parseFloat($quantityHeld[index].value);
-      });
+    if (validated) {
+      if (totalAllocation !== 100) {
+        app.showAllocationPopup($parentSelector);
+        validated = false;
+      } else {
+        app.removeAllocationPopup($parentSelector);
+      }
+    } else {
+      app.removeAllocationPopup($parentSelector);
+    }
 
-      // Calculate the total cost of the portfolio
-      let portfolioCost = app.calcPortfolioCost(app.selection);
+    // Proceed if all validation checks are met
+    if (validated) {
+      const investment = parseFloat($investment.val());
+      const portfolioCost = app.calcPortfolioCost(app.selection);
 
       // Loop through securities to get current market price
       for (const [symbol, details] of Object.entries(app.selection)) {
@@ -564,8 +655,6 @@ app.portfolioSubmission = () => {
             // get the closing price of the first object and save it in the global object
             const timeSeries = data["Time Series (Daily)"];
             const firstKey = Object.keys(timeSeries)[0];
-            console.log(firstKey);
-            console.log(timeSeries[firstKey]);
 
             const price = parseFloat(timeSeries[firstKey]["5. adjusted close"]);
             app.selection[symbol].price = price;
@@ -581,20 +670,20 @@ app.portfolioSubmission = () => {
             // Display the results to the user
             app.displayResultRow(
               symbol,
-              portfolioCost,
+              app.selection[symbol],
               investment,
-              app.selection[symbol]
+              portfolioCost
             );
           })
+          // TODO: Create error message to user
           .catch((error) => console.log(error));
       }
 
       const investmentBal = app.calcInvestmentBalance(app.selection);
-
       app.displayOverallResults(portfolioCost, investment, investmentBal);
       app.showOverallResults();
     } else {
-      // Create error message to user
+      // TODO: Create error message to user
     }
   });
 };
