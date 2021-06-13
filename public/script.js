@@ -77,36 +77,51 @@ app.getSize = (object) => {
 };
 
 // ******************* FUNCTIONS *******************
-// Gets the security price from the api
-app.getSecurityPrice = (symbol) => {
-  const promise = $.ajax({
-    url: app.apiEndpointAlpha,
-    method: "GET",
-    dataType: "JSON",
-    data: {
-      apikey: app.apiKeyAlpha,
-      function: "TIME_SERIES_DAILY_ADJUSTED",
-      outputsize: "compact",
-      symbol: symbol,
+// Fetch the security price from the api
+app.fetchSecurityPrice = (symbol) => {
+  const data = { symbol: symbol };
+  const options = {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-  });
+    body: JSON.stringify(data),
+  };
 
+  const promise = fetch("/price", options);
   return promise;
 };
 
-// Get search options from the api
-app.getSearchSuggestions = (keywords) => {
-  const promise = $.ajax({
-    url: app.apiEndpointFinMod,
-    method: "GET",
-    dataType: "JSON",
-    data: {
-      apikey: app.apiKeyFinMod,
-      query: keywords,
-      limit: "10",
-    },
-  });
+// app.getSecurityPrice = (symbol) => {
+//   const promise = $.ajax({
+//     url: app.apiEndpointAlpha,
+//     method: "GET",
+//     dataType: "JSON",
+//     data: {
+//       apikey: app.apiKeyAlpha,
+//       function: "TIME_SERIES_DAILY_ADJUSTED",
+//       outputsize: "compact",
+//       symbol: symbol,
+//     },
+//   });
 
+//   return promise;
+// };
+
+// Fetch search options from the api
+app.fetchSearchSuggestions = (keywords) => {
+  const data = { keywords: keywords };
+  const options = {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  };
+
+  const promise = fetch("/search", options);
   return promise;
 };
 
@@ -441,36 +456,42 @@ app.validateByInputName = (ticker, inputName) => {
 
 // Listen for user keystrokes to submit searches
 app.submitUserSearch = () => {
-  app.$searchInput.on("keypress", () => {
+  app.$searchInput.on("keypress", async () => {
     // get the user's search result and submit api request
-    const search = app.$searchInput.val();
+    const search = await app.$searchInput.val();
 
-    const searchPromise = app.getSearchSuggestions(search);
-    searchPromise
-      .then((data) => {
-        // Empty previous results
-        app.$searchResultContainer.empty();
+    if (search !== "") {
+      const promise = app.fetchSearchSuggestions(search);
 
-        // Display no results if there are none
-        if (data.length === 0) {
+      promise
+        .then((response) => response.json())
+        .then((res) => {
+          const data = JSON.parse(res.message);
+
+          // Empty previous results
+          app.$searchResultContainer.empty();
+
+          // Display no results if there are none
+          if (data.length === 0) {
+            app.displayNoResults();
+          }
+
+          // Loop through search results and display it to the user
+          else {
+            data.forEach((result) => {
+              app.displayEachSearchSuggestion(result.symbol, result.name);
+            });
+          }
+
+          // Show results container
+          app.$searchResultContainer.removeClass("hide");
+        })
+        .catch((error) => {
+          // If error occurs, show no search results found and log error
           app.displayNoResults();
-        }
-
-        // Loop through search results and display it to the user
-        else {
-          data.forEach((result) => {
-            app.displayEachSearchSuggestion(result.symbol, result.name);
-          });
-        }
-
-        // Show results container
-        app.$searchResultContainer.removeClass("hide");
-      })
-      .catch((error) => {
-        // If error occurs, show no search results found and log error
-        app.displayNoResults();
-        console.log(error);
-      });
+          console.log(error);
+        });
+    }
   });
 };
 
@@ -672,10 +693,13 @@ app.portfolioSubmission = () => {
 
       // Loop through securities to get current market price
       for (const [symbol, details] of Object.entries(app.selection)) {
-        let promise = app.getSecurityPrice(symbol);
+        let promise = app.fetchSecurityPrice(symbol);
 
         await promise
-          .then((data) => {
+          .then((response) => response.json())
+          .then((res) => {
+            const data = JSON.parse(res.message);
+
             // get the closing price of the first object and save it in the global object
             const timeSeries = data["Time Series (Daily)"];
             const firstKey = Object.keys(timeSeries)[0];
