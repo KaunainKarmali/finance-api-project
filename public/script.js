@@ -1,12 +1,13 @@
+// ******************* IMPORTS *******************
+import { fetchSecurityPrice, fetchSearchSuggestions } from "./modules/api.mjs";
+import {
+  aggregateBalance,
+  numberWithCommas,
+  getSize,
+} from "./modules/utils.mjs";
+
 // ******************* NAMESPACE APP *******************
 const app = {};
-
-// ******************* API DETAILS *******************
-app.apiKeyAlpha = "MWLXKKEHU3XOJ8O9";
-app.apiEndpointAlpha = "https://www.alphavantage.co/query";
-
-app.apiKeyFinMod = "1dde315e9f4982f454e6e4d33f0fb8eb";
-app.apiEndpointFinMod = "https://financialmodelingprep.com/api/v3/search";
 
 // ******************* GLOBAL VARIABLES *******************
 app.selection = {}; // Stores securities selected by the user
@@ -17,99 +18,7 @@ app.$searchButton = $(".search-icon");
 app.$searchInput = $(".search-input");
 app.$searchForm = $(".search-form");
 
-// ******************* UTIL FUNCTIONS *******************
-// Truncate name or symbol if its too long
-app.truncateString = (string, length) => {
-  if (string.length > length) {
-    string = string.substring(0, length).trim() + "...";
-  }
-  return string;
-};
-
-// Calculates the total cost of the portfolio
-app.calcPortfolioCost = (object) => {
-  let portfolioCost = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    portfolioCost += detail.cost;
-  }
-
-  return portfolioCost;
-};
-
-// Calculates the total allocation of the portfolio
-app.calcPortfolioAllocation = (object) => {
-  let portfolioAllocation = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    portfolioAllocation += detail.allocation;
-  }
-
-  return portfolioAllocation;
-};
-
-app.calcInvestmentBalance = (object) => {
-  let investmentBal = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    investmentBal += detail.price
-      ? detail.price
-      : 0 * detail.quantity
-      ? detail.quantity
-      : 0;
-  }
-
-  return parseInt(investmentBal);
-};
-
-// Adds commas to a number
-app.numberWithCommas = (numb) => {
-  return numb.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
-};
-
-// Get the total number of items in an object
-app.getSize = (object) => {
-  let size = 0;
-  for (key in object) {
-    if (object.hasOwnProperty(key)) size++;
-  }
-  return size;
-};
-
 // ******************* FUNCTIONS *******************
-// Gets the security price from the api
-app.getSecurityPrice = (symbol) => {
-  const promise = $.ajax({
-    url: app.apiEndpointAlpha,
-    method: "GET",
-    dataType: "JSON",
-    data: {
-      apikey: app.apiKeyAlpha,
-      function: "TIME_SERIES_DAILY_ADJUSTED",
-      outputsize: "compact",
-      symbol: symbol,
-    },
-  });
-
-  return promise;
-};
-
-// Get search options from the api
-app.getSearchSuggestions = (keywords) => {
-  const promise = $.ajax({
-    url: app.apiEndpointFinMod,
-    method: "GET",
-    dataType: "JSON",
-    data: {
-      apikey: app.apiKeyFinMod,
-      query: keywords,
-      limit: "10",
-    },
-  });
-
-  return promise;
-};
-
 // Output a single search result to the screen
 app.displayEachSearchSuggestion = (symbol, name) => {
   // Truncate if the string is too long
@@ -270,11 +179,11 @@ app.displayResultRow = (
     <tr id="rebalance-${symbol}" class="rebalance-data-row" style="display: none;">
       <td><span class="ticker-alt">${symbol}</span></td>
       <td>${name}</td>
-      <td>${app.numberWithCommas(price)}</td>
-      <td>${app.numberWithCommas(quantity)}</td>
-      <td>${app.numberWithCommas(cost)}</td>
-      <td>${app.numberWithCommas(incremental)}</td>
-      <td>${app.numberWithCommas(value)}</td>
+      <td>${numberWithCommas(price)}</td>
+      <td>${numberWithCommas(quantity)}</td>
+      <td>${numberWithCommas(cost)}</td>
+      <td>${numberWithCommas(incremental)}</td>
+      <td>${numberWithCommas(value)}</td>
       <td>${allocation}</td>
       <td>${expectedAllocation}</td>
     </tr>
@@ -335,9 +244,7 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Total portfolio value</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${app.numberWithCommas(
-              parseInt(investment) + parseInt(portfolioCost)
-            )}
+            ${numberWithCommas(parseInt(investment) + parseInt(portfolioCost))}
           </div>
         </div>
 
@@ -345,9 +252,7 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Remaining cash balance</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${app.numberWithCommas(
-              parseInt(investment) - parseInt(investmentBal)
-            )}
+            ${numberWithCommas(parseInt(investment) - parseInt(investmentBal))}
           </div>
         </div>
 
@@ -355,7 +260,7 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Investment balance</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${app.numberWithCommas(
+            ${numberWithCommas(
               parseInt(investmentBal) + parseInt(portfolioCost)
             )}
           </div>
@@ -441,36 +346,42 @@ app.validateByInputName = (ticker, inputName) => {
 
 // Listen for user keystrokes to submit searches
 app.submitUserSearch = () => {
-  app.$searchInput.on("keypress", () => {
+  app.$searchInput.on("keypress", async () => {
     // get the user's search result and submit api request
-    const search = app.$searchInput.val();
+    const search = await app.$searchInput.val();
 
-    const searchPromise = app.getSearchSuggestions(search);
-    searchPromise
-      .then((data) => {
-        // Empty previous results
-        app.$searchResultContainer.empty();
+    if (search !== "") {
+      const promise = fetchSearchSuggestions(search);
 
-        // Display no results if there are none
-        if (data.length === 0) {
+      promise
+        .then((response) => response.json())
+        .then((res) => {
+          const data = JSON.parse(res.message);
+
+          // Empty previous results
+          app.$searchResultContainer.empty();
+
+          // Display no results if there are none
+          if (data.length === 0) {
+            app.displayNoResults();
+          }
+
+          // Loop through search results and display it to the user
+          else {
+            data.forEach((result) => {
+              app.displayEachSearchSuggestion(result.symbol, result.name);
+            });
+          }
+
+          // Show results container
+          app.$searchResultContainer.removeClass("hide");
+        })
+        .catch((error) => {
+          // If error occurs, show no search results found and log error
           app.displayNoResults();
-        }
-
-        // Loop through search results and display it to the user
-        else {
-          data.forEach((result) => {
-            app.displayEachSearchSuggestion(result.symbol, result.name);
-          });
-        }
-
-        // Show results container
-        app.$searchResultContainer.removeClass("hide");
-      })
-      .catch((error) => {
-        // If error occurs, show no search results found and log error
-        app.displayNoResults();
-        console.log(error);
-      });
+          console.log(error);
+        });
+    }
   });
 };
 
@@ -509,7 +420,7 @@ app.selectSecurity = () => {
     if (
       app.selection[symbol] === undefined &&
       addSecurity &&
-      app.getSize(app.selection) < 5
+      getSize(app.selection) < 5
       // Allows a maximum of 5 securities to be searched due to API limits
     ) {
       app.selection = {
@@ -652,7 +563,7 @@ app.portfolioSubmission = () => {
     }
 
     // Validate portfolio allocation is 100 or not
-    const totalAllocation = app.calcPortfolioAllocation(app.selection);
+    const totalAllocation = aggregateBalance(app.selection, "allocation");
 
     if (validated) {
       if (totalAllocation !== 100) {
@@ -668,14 +579,17 @@ app.portfolioSubmission = () => {
     // Proceed if all validation checks are met
     if (validated) {
       const investment = parseFloat($investment.val());
-      const portfolioCost = app.calcPortfolioCost(app.selection);
+      const portfolioCost = aggregateBalance(app.selection, "cost");
 
       // Loop through securities to get current market price
       for (const [symbol, details] of Object.entries(app.selection)) {
-        let promise = app.getSecurityPrice(symbol);
+        let promise = fetchSecurityPrice(symbol);
 
         await promise
-          .then((data) => {
+          .then((response) => response.json())
+          .then((res) => {
+            const data = JSON.parse(res.message);
+
             // get the closing price of the first object and save it in the global object
             const timeSeries = data["Time Series (Daily)"];
             const firstKey = Object.keys(timeSeries)[0];

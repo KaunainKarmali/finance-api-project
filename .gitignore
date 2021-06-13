@@ -1,2 +1,3 @@
-package.json
 data.js
+.env
+node_modules/
