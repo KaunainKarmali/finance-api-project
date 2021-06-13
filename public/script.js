@@ -1,12 +1,13 @@
+// ******************* IMPORTS *******************
+import { fetchSecurityPrice, fetchSearchSuggestions } from "./modules/api.mjs";
+import {
+  aggregateBalance,
+  numberWithCommas,
+  getSize,
+} from "./modules/utils.mjs";
+
 // ******************* NAMESPACE APP *******************
 const app = {};
-
-// ******************* API DETAILS *******************
-app.apiKeyAlpha = "MWLXKKEHU3XOJ8O9";
-app.apiEndpointAlpha = "https://www.alphavantage.co/query";
-
-app.apiKeyFinMod = "1dde315e9f4982f454e6e4d33f0fb8eb";
-app.apiEndpointFinMod = "https://financialmodelingprep.com/api/v3/search";
 
 // ******************* GLOBAL VARIABLES *******************
 app.selection = {}; // Stores securities selected by the user
@@ -17,114 +18,7 @@ app.$searchButton = $(".search-icon");
 app.$searchInput = $(".search-input");
 app.$searchForm = $(".search-form");
 
-// ******************* UTIL FUNCTIONS *******************
-// Truncate name or symbol if its too long
-app.truncateString = (string, length) => {
-  if (string.length > length) {
-    string = string.substring(0, length).trim() + "...";
-  }
-  return string;
-};
-
-// Calculates the total cost of the portfolio
-app.calcPortfolioCost = (object) => {
-  let portfolioCost = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    portfolioCost += detail.cost;
-  }
-
-  return portfolioCost;
-};
-
-// Calculates the total allocation of the portfolio
-app.calcPortfolioAllocation = (object) => {
-  let portfolioAllocation = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    portfolioAllocation += detail.allocation;
-  }
-
-  return portfolioAllocation;
-};
-
-app.calcInvestmentBalance = (object) => {
-  let investmentBal = 0;
-
-  for (const [symbol, detail] of Object.entries(object)) {
-    investmentBal += detail.price
-      ? detail.price
-      : 0 * detail.quantity
-      ? detail.quantity
-      : 0;
-  }
-
-  return parseInt(investmentBal);
-};
-
-// Adds commas to a number
-app.numberWithCommas = (numb) => {
-  return numb.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
-};
-
-// Get the total number of items in an object
-app.getSize = (object) => {
-  let size = 0;
-  for (key in object) {
-    if (object.hasOwnProperty(key)) size++;
-  }
-  return size;
-};
-
 // ******************* FUNCTIONS *******************
-// Fetch the security price from the api
-app.fetchSecurityPrice = (symbol) => {
-  const data = { symbol: symbol };
-  const options = {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  };
-
-  const promise = fetch("/price", options);
-  return promise;
-};
-
-// app.getSecurityPrice = (symbol) => {
-//   const promise = $.ajax({
-//     url: app.apiEndpointAlpha,
-//     method: "GET",
-//     dataType: "JSON",
-//     data: {
-//       apikey: app.apiKeyAlpha,
-//       function: "TIME_SERIES_DAILY_ADJUSTED",
-//       outputsize: "compact",
-//       symbol: symbol,
-//     },
-//   });
-
-//   return promise;
-// };
-
-// Fetch search options from the api
-app.fetchSearchSuggestions = (keywords) => {
-  const data = { keywords: keywords };
-  const options = {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  };
-
-  const promise = fetch("/search", options);
-  return promise;
-};
-
 // Output a single search result to the screen
 app.displayEachSearchSuggestion = (symbol, name) => {
   // Truncate if the string is too long
@@ -285,11 +179,11 @@ app.displayResultRow = (
     <tr id="rebalance-${symbol}" class="rebalance-data-row" style="display: none;">
       <td><span class="ticker-alt">${symbol}</span></td>
       <td>${name}</td>
-      <td>${app.numberWithCommas(price)}</td>
-      <td>${app.numberWithCommas(quantity)}</td>
-      <td>${app.numberWithCommas(cost)}</td>
-      <td>${app.numberWithCommas(incremental)}</td>
-      <td>${app.numberWithCommas(value)}</td>
+      <td>${numberWithCommas(price)}</td>
+      <td>${numberWithCommas(quantity)}</td>
+      <td>${numberWithCommas(cost)}</td>
+      <td>${numberWithCommas(incremental)}</td>
+      <td>${numberWithCommas(value)}</td>
       <td>${allocation}</td>
       <td>${expectedAllocation}</td>
     </tr>
@@ -350,9 +244,7 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Total portfolio value</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${app.numberWithCommas(
-              parseInt(investment) + parseInt(portfolioCost)
-            )}
+            ${numberWithCommas(parseInt(investment) + parseInt(portfolioCost))}
           </div>
         </div>
 
@@ -360,9 +252,7 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Remaining cash balance</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${app.numberWithCommas(
-              parseInt(investment) - parseInt(investmentBal)
-            )}
+            ${numberWithCommas(parseInt(investment) - parseInt(investmentBal))}
           </div>
         </div>
 
@@ -370,7 +260,7 @@ app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
           <div class="result-title">Investment balance</div>
           <div class="result-value">
             <span class="result-symbol">$</span>
-            ${app.numberWithCommas(
+            ${numberWithCommas(
               parseInt(investmentBal) + parseInt(portfolioCost)
             )}
           </div>
@@ -461,7 +351,7 @@ app.submitUserSearch = () => {
     const search = await app.$searchInput.val();
 
     if (search !== "") {
-      const promise = app.fetchSearchSuggestions(search);
+      const promise = fetchSearchSuggestions(search);
 
       promise
         .then((response) => response.json())
@@ -530,7 +420,7 @@ app.selectSecurity = () => {
     if (
       app.selection[symbol] === undefined &&
       addSecurity &&
-      app.getSize(app.selection) < 5
+      getSize(app.selection) < 5
       // Allows a maximum of 5 securities to be searched due to API limits
     ) {
       app.selection = {
@@ -673,7 +563,7 @@ app.portfolioSubmission = () => {
     }
 
     // Validate portfolio allocation is 100 or not
-    const totalAllocation = app.calcPortfolioAllocation(app.selection);
+    const totalAllocation = aggregateBalance(app.selection, "allocation");
 
     if (validated) {
       if (totalAllocation !== 100) {
@@ -689,11 +579,11 @@ app.portfolioSubmission = () => {
     // Proceed if all validation checks are met
     if (validated) {
       const investment = parseFloat($investment.val());
-      const portfolioCost = app.calcPortfolioCost(app.selection);
+      const portfolioCost = aggregateBalance(app.selection, "cost");
 
       // Loop through securities to get current market price
       for (const [symbol, details] of Object.entries(app.selection)) {
-        let promise = app.fetchSecurityPrice(symbol);
+        let promise = fetchSecurityPrice(symbol);
 
         await promise
           .then((response) => response.json())
