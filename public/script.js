@@ -4,6 +4,7 @@ import {
   aggregateBalance,
   numberWithCommas,
   getSize,
+  truncateString,
 } from "./modules/utils.mjs";
 
 // ******************* NAMESPACE APP *******************
@@ -22,8 +23,8 @@ app.$searchForm = $(".search-form");
 // Output a single search result to the screen
 app.displayEachSearchSuggestion = (symbol, name) => {
   // Truncate if the string is too long
-  const trucatedName = app.truncateString(name, 50);
-  const truncatedSymbol = app.truncateString(symbol, 8);
+  const trucatedName = truncateString(name, 50);
+  const truncatedSymbol = truncateString(symbol, 8);
 
   // add or remove button to be appended to the search result depending on whether user has already included it in their selection or not
   const addBtn = `
@@ -85,8 +86,8 @@ app.displaySelectedSecurity = (symbol, name) => {
   const selectedSecurityHTML = `
     <div id="${symbol}" class="selection" style="display: none;">
       <form class="selected-security-form" action="" method="get">
-        <p class="selected-ticker">${app.truncateString(symbol, 8)}</p>
-        <p class="selected-company">${app.truncateString(name, 25)}</p>
+        <p class="selected-ticker">${truncateString(symbol, 8)}</p>
+        <p class="selected-company">${truncateString(name, 25)}</p>
         <button class="remove-selection-btn" type="submit">
           <i class="fas fa-times remove-selection-icon"></i>
         </button>
