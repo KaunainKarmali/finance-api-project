@@ -349,7 +349,7 @@ app.validateByInputName = (ticker, inputName) => {
 app.submitUserSearch = () => {
   app.$searchInput.on("keypress", async () => {
     // get the user's search result and submit api request
-    const search = await app.$searchInput.val();
+    const search = app.$searchInput.val();
 
     if (search !== "") {
       const promise = fetchSearchSuggestions(search);

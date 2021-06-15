@@ -40,7 +40,7 @@ export const numberWithCommas = (numb) => {
 // Get the total number of items in an object
 export const getSize = (object) => {
   let size = 0;
-  for (key in object) {
+  for (const key in object) {
     if (object.hasOwnProperty(key)) size++;
   }
   return size;
