@@ -13,8 +13,19 @@ import {
   displayAddButton,
   displayNoResults,
   displayNoResultFound,
+  removeNoResultFound,
+  displaySelectedSecurity,
+  removeSelectedSecurity,
+  displayInPortfolio,
   removeFromPortfolio,
 } from "./modules/portfolio-display.mjs";
+import {
+  displayRequiredPopup,
+  removeRequiredPopup,
+  removeAllocationPopup,
+  highlightRequiredField,
+  unhighlightRequiredField,
+} from "./modules/error-handling.mjs";
 
 // ******************* NAMESPACE APP *******************
 const app = {};
@@ -58,78 +69,6 @@ app.displayEachSearchSuggestion = (symbol, name) => {
   app.$searchResultContainer.append(resultHTML);
 };
 
-// display the security selected back to the user
-app.displaySelectedSecurity = (symbol, name) => {
-  const selectedSecurityHTML = `
-    <div id="${symbol}" class="selection" style="display: none;">
-      <form class="selected-security-form" action="" method="get">
-        <p class="selected-ticker">${truncateString(symbol, 8)}</p>
-        <p class="selected-company">${truncateString(name, 25)}</p>
-        <button class="remove-selection-btn" type="submit">
-          <i class="fas fa-times remove-selection-icon"></i>
-        </button>
-      </form>
-    </div>
-  `;
-
-  $(".selections-container").append(selectedSecurityHTML);
-  $(`#${symbol}`).show("slow");
-};
-
-app.removeSelectedSecurity = (symbol) => {
-  const $target = $(`#${symbol}`);
-
-  $target.hide("slow", function () {
-    $target.remove();
-  });
-};
-
-// Show the selected security in the portfolio container
-app.displayInPortfolio = (symbol, name) => {
-  const portfolioRowHTML = `
-    <tr id="portfolio-${symbol}" class="portfolio-selection-row" style="display: none;">
-      <td><span class="ticker">${symbol}</span></td>
-      <td>${name}</td>
-      <td>
-        <input
-          class="portfolio-input"
-          type="number"
-          name="cost"
-          placeholder="$1,000"
-          min="0"
-          step=".01"
-        />
-      </td>
-      <td>
-        <input
-          class="portfolio-input"
-          type="number"
-          name="quantityHeld"
-          placeholder="10"
-          min="0"
-          step=".01"
-        />
-      </td>
-      <td>
-        <input
-          class="portfolio-input"
-          type="number"
-          name="allocation"
-          placeholder="100%"
-          min="0"
-          max="100"
-          step=".01"
-        />
-      </td>
-    </tr>
-  `;
-
-  $(".portfolio-table-body").append(portfolioRowHTML);
-
-  // animate showing the new symbol
-  $(`#portfolio-${symbol}`).show("slow");
-};
-
 app.displayResultRow = (
   symbol,
   { name, quantity, cost, price, allocation },
@@ -171,25 +110,6 @@ app.displayResultRow = (
 
   // animate showing the new symbol
   $(`#rebalance-${symbol}`).show("slow");
-};
-
-// app.displayNoResultFound = (symbol) => {
-//   // Create HTML element to be rendered
-//   const resultRowHTML = `
-//     <div id="rebalance-${symbol}" class="rebalance-data-row no-results-row" style="display: none;">
-//       <div>No results found for <span class="ticker-alt">${symbol}</span></div>
-//     </div>
-//   `;
-
-//   // Show the element on the page to the user
-//   $(".rebalance-noresults-container").append(resultRowHTML);
-
-//   // animate showing the new symbol
-//   $(`#rebalance-${symbol}`).show("slow");
-// };
-
-app.removeDisplayNoResultFound = () => {
-  $(".rebalance-noresults-container").empty();
 };
 
 app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
@@ -245,44 +165,6 @@ app.hideOverallResults = () => {
   $(`.rebalance-container`).hide("slow");
 };
 
-app.showRequiredPopup = (parentSelector) => {
-  const popupHtml = `
-  <div class="required-field-popup">
-      <i class="fas fa-exclamation-circle required-field-icon"></i>
-      <p class="required-field-text">Required field</p>
-  </div>
-  `;
-
-  parentSelector.append(popupHtml);
-};
-
-app.removeRequiredPopup = (parentSelector) => {
-  parentSelector.children(".required-field-popup").remove();
-};
-
-app.highlightRequiredField = (inputSelector) => {
-  inputSelector.addClass("required-field-input");
-};
-
-app.unhighlightRequiredField = (inputSelector) => {
-  inputSelector.removeClass("required-field-input");
-};
-
-app.showAllocationPopup = (parentSelector) => {
-  const popupHtml = `
-  <div class="required-field-popup required-allocation-popup">
-      <i class="fas fa-exclamation-circle required-field-icon"></i>
-      <p class="required-field-text">Allocation does not equal 100%</p>
-  </div>
-  `;
-
-  parentSelector.append(popupHtml);
-};
-
-app.removeAllocationPopup = (parentSelector) => {
-  parentSelector.children(".required-allocation-popup").remove();
-};
-
 // Validates whether the input fields in the portfolio table are populated or not
 app.validateByInputName = (ticker, inputName) => {
   const id = `#portfolio-${ticker}`;
@@ -290,10 +172,10 @@ app.validateByInputName = (ticker, inputName) => {
   const $selector = $(id).find(`input[name=${inputName}]`);
 
   if ($selector.val() === "") {
-    app.highlightRequiredField($selector);
+    highlightRequiredField($selector);
     return false;
   } else {
-    app.unhighlightRequiredField($selector);
+    unhighlightRequiredField($selector);
     app.selection[ticker][inputName] = parseFloat($selector.val());
     return true;
   }
@@ -394,10 +276,10 @@ app.selectSecurity = () => {
       displayRemoveButton($this);
 
       // Show the selected security to the user
-      app.displaySelectedSecurity(symbol, name);
+      displaySelectedSecurity(symbol, name);
 
       // Show the selected security in the portfolio container
-      app.displayInPortfolio(symbol, name);
+      displayInPortfolio(symbol, name);
 
       // Empty previous results and hide container
       app.$searchResultContainer.addClass("hide");
@@ -408,7 +290,7 @@ app.selectSecurity = () => {
       delete app.selection[symbol];
 
       // Remove security from screen
-      app.removeSelectedSecurity(symbol);
+      removeSelectedSecurity(symbol);
 
       // Remove the selected security in the portfolio container
       removeFromPortfolio(symbol);
@@ -434,7 +316,7 @@ app.removeSecurity = () => {
       delete app.selection[symbol];
 
       // Remove security from screen
-      app.removeSelectedSecurity(symbol);
+      removeSelectedSecurity(symbol);
 
       // Remove the selected security in the portfolio container
       removeFromPortfolio(symbol);
@@ -461,7 +343,7 @@ app.portfolioSubmission = () => {
     app.hideOverallResults();
     $(".results-div").remove();
     $(".rebalance-data-row").remove();
-    app.removeDisplayNoResultFound();
+    removeNoResultFound();
 
     // Get user's total investment input
     const $investment = $("#investment");
@@ -472,12 +354,12 @@ app.portfolioSubmission = () => {
 
     // Validate investment field
     if ($investment.val() === "") {
-      app.highlightRequiredField($investment);
-      app.showRequiredPopup($parentSelector);
+      highlightRequiredField($investment);
+      displayRequiredPopup($parentSelector);
       validated = false;
     } else {
-      app.unhighlightRequiredField($investment);
-      app.removeRequiredPopup($parentSelector);
+      unhighlightRequiredField($investment);
+      removeRequiredPopup($parentSelector);
     }
 
     // Validate if user has selected any securities
@@ -488,12 +370,12 @@ app.portfolioSubmission = () => {
     const $searchInput = $(".search-input");
 
     if ($securities.length === 0) {
-      app.highlightRequiredField($searchInput);
-      app.showRequiredPopup($parentSelector);
+      highlightRequiredField($searchInput);
+      displayRequiredPopup($parentSelector);
       validated = false;
     } else {
-      app.unhighlightRequiredField($searchInput);
-      app.removeRequiredPopup($parentSelector);
+      unhighlightRequiredField($searchInput);
+      removeRequiredPopup($parentSelector);
     }
 
     // Validate portfolio table inputs
@@ -513,10 +395,10 @@ app.portfolioSubmission = () => {
 
     $parentSelector = $(".portfolio-form");
     if (!portfolioTableValidated) {
-      app.showRequiredPopup($parentSelector);
+      displayRequiredPopup($parentSelector);
       validated = false;
     } else {
-      app.removeRequiredPopup($parentSelector);
+      removeRequiredPopup($parentSelector);
     }
 
     // Validate portfolio allocation is 100 or not
@@ -524,13 +406,13 @@ app.portfolioSubmission = () => {
 
     if (validated) {
       if (totalAllocation !== 100) {
-        app.showAllocationPopup($parentSelector);
+        displayAllocationRequiredPopup($parentSelector);
         validated = false;
       } else {
-        app.removeAllocationPopup($parentSelector);
+        removeAllocationPopup($parentSelector);
       }
     } else {
-      app.removeAllocationPopup($parentSelector);
+      removeAllocationPopup($parentSelector);
     }
 
     // Proceed if all validation checks are met
