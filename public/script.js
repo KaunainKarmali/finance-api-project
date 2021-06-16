@@ -5,6 +5,7 @@ import {
   numberWithCommas,
   getSize,
   truncateString,
+  calcInvestmentBalance,
 } from "./modules/utils.mjs";
 
 // ******************* NAMESPACE APP *******************
@@ -226,14 +227,13 @@ app.calcSecurityPurchase = (
   const targetValue = (investment + portfolioCost) * (allocation / 100);
 
   // Determine how many additional shares to purchase or sell to achieve the target allocation ratio
-  let incrementalQuantity = 0;
-  if (targetValue > cost) {
-    incrementalQuantity = Math.floor((targetValue - cost) / price);
-  } else {
-    incrementalQuantity = Math.floor((targetValue - cost) / price);
-  }
+  let incrementalQuantity = (targetValue - cost) / price;
+  let incrementalQuantityRounded =
+    incrementalQuantity > 0
+      ? Math.floor(incrementalQuantity) // round down purchases
+      : Math.ceil(Math.abs(incrementalQuantity)); // round up sales
 
-  app.selection[symbol].quantity = incrementalQuantity;
+  app.selection[symbol].quantity = incrementalQuantityRounded;
 };
 
 app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
@@ -620,7 +620,7 @@ app.portfolioSubmission = () => {
           });
       }
 
-      const investmentBal = app.calcInvestmentBalance(app.selection);
+      const investmentBal = calcInvestmentBalance(app.selection);
       app.displayOverallResults(portfolioCost, investment, investmentBal);
       app.showOverallResults();
     }
