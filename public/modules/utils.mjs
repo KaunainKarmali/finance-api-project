@@ -22,11 +22,10 @@ export const calcInvestmentBalance = (object) => {
   let balance = 0;
 
   for (const [symbol, detail] of Object.entries(object)) {
-    balance += detail.price
-      ? detail.price
-      : 0 * detail.quantity
-      ? detail.quantity
-      : 0;
+    const price = detail.price ? detail.price : 0;
+    const quantity = detail.quantity ? detail.quantity : 0;
+
+    balance += price * quantity;
   }
 
   return balance;

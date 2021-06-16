@@ -1,6 +1,6 @@
 // *****************IMPORTS*****************
 import express from "express";
-import { getSearchResults, getStockPrice } from "./api.mjs";
+import { getSearchResults, getStockPrice } from "./server-scripts/api.js";
 
 const app = express();
 app.use(express.static("./public"));

@@ -7,6 +7,14 @@ import {
   truncateString,
   calcInvestmentBalance,
 } from "./modules/utils.mjs";
+import { calcSecurityPurchase } from "./modules/portfolio-brain.mjs";
+import {
+  displayRemoveButton,
+  displayAddButton,
+  displayNoResults,
+  displayNoResultFound,
+  removeFromPortfolio,
+} from "./modules/portfolio-display.mjs";
 
 // ******************* NAMESPACE APP *******************
 const app = {};
@@ -48,38 +56,6 @@ app.displayEachSearchSuggestion = (symbol, name) => {
     </div>`;
 
   app.$searchResultContainer.append(resultHTML);
-};
-
-// Function to display when there are no search results
-app.displayNoResults = () => {
-  const resultHTML = `
-    <div class="search-result-row">
-        <span class="result-symbol">No results found.</span>
-    </div>`;
-
-  app.$searchResultContainer.append(resultHTML);
-};
-
-// display the remove button
-app.displayRemoveButton = (selector) => {
-  const removeIcon = `<i class="fas fa-minus"></i>`;
-  selector
-    .find(".add-btn")
-    .removeClass("add-btn")
-    .addClass("remove-btn")
-    .empty()
-    .append(removeIcon);
-};
-
-// display the add button
-app.displayAddButton = (selector) => {
-  const addIcon = `<i class="fas fa-plus add-icon"></i>`;
-  selector
-    .find(".remove-btn")
-    .removeClass("remove-btn")
-    .addClass("add-btn")
-    .empty()
-    .append(addIcon);
 };
 
 // display the security selected back to the user
@@ -154,14 +130,6 @@ app.displayInPortfolio = (symbol, name) => {
   $(`#portfolio-${symbol}`).show("slow");
 };
 
-app.removeFromPortfolio = (symbol) => {
-  const $target = $(`#portfolio-${symbol}`);
-
-  $target.hide("slow", function () {
-    $target.remove();
-  });
-};
-
 app.displayResultRow = (
   symbol,
   { name, quantity, cost, price, allocation },
@@ -171,6 +139,9 @@ app.displayResultRow = (
   // Calculate the relevant values to be displayed to the user
   const incremental = Math.round(price * quantity);
   const value = Math.round(cost + incremental);
+  console.log(quantity);
+  console.log(app.selection);
+  console.log(numberWithCommas(quantity));
   const expectedAllocation = (
     (value / (portfolioCost + investment)) *
     100
@@ -184,7 +155,11 @@ app.displayResultRow = (
       <td>${numberWithCommas(price)}</td>
       <td>${numberWithCommas(quantity)}</td>
       <td>${numberWithCommas(cost)}</td>
-      <td>${numberWithCommas(incremental)}</td>
+      <td>${
+        incremental > 0
+          ? numberWithCommas(incremental)
+          : -numberWithCommas(incremental)
+      }</td>
       <td>${numberWithCommas(value)}</td>
       <td>${allocation}</td>
       <td>${expectedAllocation}</td>
@@ -198,42 +173,23 @@ app.displayResultRow = (
   $(`#rebalance-${symbol}`).show("slow");
 };
 
-app.displayNoResultFound = (symbol) => {
-  // Create HTML element to be rendered
-  const resultRowHTML = `
-    <div id="rebalance-${symbol}" class="rebalance-data-row no-results-row" style="display: none;">
-      <div>No results found for <span class="ticker-alt">${symbol}</span></div>
-    </div>
-  `;
+// app.displayNoResultFound = (symbol) => {
+//   // Create HTML element to be rendered
+//   const resultRowHTML = `
+//     <div id="rebalance-${symbol}" class="rebalance-data-row no-results-row" style="display: none;">
+//       <div>No results found for <span class="ticker-alt">${symbol}</span></div>
+//     </div>
+//   `;
 
-  // Show the element on the page to the user
-  $(".rebalance-noresults-container").append(resultRowHTML);
+//   // Show the element on the page to the user
+//   $(".rebalance-noresults-container").append(resultRowHTML);
 
-  // animate showing the new symbol
-  $(`#rebalance-${symbol}`).show("slow");
-};
+//   // animate showing the new symbol
+//   $(`#rebalance-${symbol}`).show("slow");
+// };
 
 app.removeDisplayNoResultFound = () => {
   $(".rebalance-noresults-container").empty();
-};
-
-app.calcSecurityPurchase = (
-  symbol,
-  { cost, price, allocation },
-  investment,
-  portfolioCost
-) => {
-  // Determine what the value of the security should be to achieve the target allocation ratio
-  const targetValue = (investment + portfolioCost) * (allocation / 100);
-
-  // Determine how many additional shares to purchase or sell to achieve the target allocation ratio
-  let incrementalQuantity = (targetValue - cost) / price;
-  let incrementalQuantityRounded =
-    incrementalQuantity > 0
-      ? Math.floor(incrementalQuantity) // round down purchases
-      : Math.ceil(Math.abs(incrementalQuantity)); // round up sales
-
-  app.selection[symbol].quantity = incrementalQuantityRounded;
 };
 
 app.displayOverallResults = (portfolioCost, investment, investmentBal) => {
@@ -364,7 +320,7 @@ app.submitUserSearch = () => {
 
           // Display no results if there are none
           if (data.length === 0) {
-            app.displayNoResults();
+            displayNoResults(app.$searchResultContainer);
           }
 
           // Loop through search results and display it to the user
@@ -379,7 +335,7 @@ app.submitUserSearch = () => {
         })
         .catch((error) => {
           // If error occurs, show no search results found and log error
-          app.displayNoResults();
+          displayNoResults(app.$searchResultContainer);
           console.log(error);
         });
     }
@@ -435,7 +391,7 @@ app.selectSecurity = () => {
       $(".portfolio-table").removeClass("hide");
       $(".rebalance-btn-container").removeClass("hide");
 
-      app.displayRemoveButton($this);
+      displayRemoveButton($this);
 
       // Show the selected security to the user
       app.displaySelectedSecurity(symbol, name);
@@ -455,10 +411,10 @@ app.selectSecurity = () => {
       app.removeSelectedSecurity(symbol);
 
       // Remove the selected security in the portfolio container
-      app.removeFromPortfolio(symbol);
+      removeFromPortfolio(symbol);
 
       // Show add button in the suggestions container
-      app.displayAddButton($this);
+      displayAddButton($this);
     }
   });
 };
@@ -481,7 +437,7 @@ app.removeSecurity = () => {
       app.removeSelectedSecurity(symbol);
 
       // Remove the selected security in the portfolio container
-      app.removeFromPortfolio(symbol);
+      removeFromPortfolio(symbol);
     }
   );
 };
@@ -599,8 +555,7 @@ app.portfolioSubmission = () => {
             app.selection[symbol].price = price;
 
             // Determine the quantity of securities to purchase and update the remaining amount to invest
-            app.calcSecurityPurchase(
-              symbol,
+            app.selection[symbol].quantity = calcSecurityPurchase(
               app.selection[symbol],
               investment,
               portfolioCost
@@ -615,7 +570,7 @@ app.portfolioSubmission = () => {
             );
           })
           .catch((error) => {
-            app.displayNoResultFound(symbol);
+            displayNoResultFound(symbol);
             console.log(error);
           });
       }
