@@ -1,3 +1,4 @@
+// Calculates how many securities have to be purchased or sold to achieve the target allocation
 export const calcSecurityPurchase = (
   { cost, price, allocation, quantityHeld },
   totalInvestment,

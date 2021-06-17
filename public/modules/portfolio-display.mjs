@@ -1,42 +1,11 @@
-import { truncateString } from "./utils.mjs";
-
 // ********************************************
 // *******************HTML*********************
 // ********************************************
-
-const removeIconHTML = () => {
-  return `<i class="fas fa-minus"></i>`;
-};
-
-const addIconHTML = () => {
-  return `<i class="fas fa-plus add-icon"></i>`;
-};
-
-const noResultHTML = () => {
-  return `
-    <div class="search-result-row">
-        <span class="result-symbol">No results found.</span>
-    </div>`;
-};
 
 const noResultFoundHTML = (symbol) => {
   return `
     <div id="rebalance-${symbol}" class="rebalance-data-row no-results-row" style="display: none;">
       <div>No results found for <span class="ticker-alt">${symbol}</span></div>
-    </div>
-  `;
-};
-
-const selectedSecurityHTML = (symbol, name) => {
-  return `
-    <div id="${symbol}" class="selection" style="display: none;">
-      <form class="selected-security-form" action="" method="get">
-        <p class="selected-ticker">${truncateString(symbol, 8)}</p>
-        <p class="selected-company">${truncateString(name, 25)}</p>
-        <button class="remove-selection-btn" type="submit">
-          <i class="fas fa-times remove-selection-icon"></i>
-        </button>
-      </form>
     </div>
   `;
 };
@@ -81,40 +50,39 @@ const portfolioRowHTML = (symbol, name) => {
   `;
 };
 
+const resultRowHTML = (
+  symbol,
+  name,
+  price,
+  quantity,
+  cost,
+  incremental,
+  value,
+  allocation,
+  expectedAllocation
+) => {
+  return `
+    <tr id="rebalance-${symbol}" class="rebalance-data-row" style="display: none;">
+      <td><span class="ticker-alt">${symbol}</span></td>
+      <td>${name}</td>
+      <td>${numberWithCommas(price)}</td>
+      <td>${numberWithCommas(quantity)}</td>
+      <td>${numberWithCommas(cost)}</td>
+      <td>${
+        incremental > 0
+          ? numberWithCommas(incremental)
+          : -numberWithCommas(incremental)
+      }</td>
+      <td>${numberWithCommas(value)}</td>
+      <td>${allocation}</td>
+      <td>${expectedAllocation}</td>
+    </tr>
+  `;
+};
+
 // ****************************************************
 // *******************DISPLAY FUNCTIONS****************
 // ****************************************************
-
-// Display the remove button
-export const displayRemoveButton = (selector) => {
-  const icon = removeIconHTML();
-
-  selector
-    .find(".add-btn")
-    .removeClass("add-btn")
-    .addClass("remove-btn")
-    .empty()
-    .append(icon);
-};
-
-// Display the add button
-export const displayAddButton = (selector) => {
-  const icon = addIconHTML();
-
-  selector
-    .find(".remove-btn")
-    .removeClass("remove-btn")
-    .addClass("add-btn")
-    .empty()
-    .append(icon);
-};
-
-// Display there are no search results
-export const displayNoResults = (selector) => {
-  // Create HTML element to be rendered
-  const noResult = noResultHTML();
-  selector.append(noResult);
-};
 
 // Display a specific symbol was not found
 export const displayNoResultFound = (symbol) => {
@@ -128,14 +96,6 @@ export const displayNoResultFound = (symbol) => {
   $(`#rebalance-${symbol}`).show("slow");
 };
 
-// Display the security selected back to the user
-export const displaySelectedSecurity = (symbol, name) => {
-  const selectedSecurity = selectedSecurityHTML(symbol, name);
-
-  $(".selections-container").append(selectedSecurity);
-  $(`#${symbol}`).show("slow");
-};
-
 // Show the selected security in the portfolio container
 export const displayInPortfolio = (symbol, name) => {
   const portfolioRow = portfolioRowHTML(symbol, name);
@@ -146,6 +106,41 @@ export const displayInPortfolio = (symbol, name) => {
   $(`#portfolio-${symbol}`).show("slow");
 };
 
+// Display the rebalancing calculation output for each security to the user
+export const displayResultRow = (
+  symbol,
+  { name, quantity, cost, price, allocation },
+  investment,
+  portfolioCost
+) => {
+  // Calculate the relevant values to be displayed to the user
+  const incremental = Math.round(price * quantity);
+  const value = Math.round(cost + incremental);
+  const expectedAllocation = (
+    (value / (portfolioCost + investment)) *
+    100
+  ).toFixed(1);
+
+  // Create HTML element to be rendered
+  const resultRow = resultRowHTML(
+    symbol,
+    name,
+    price,
+    quantity,
+    cost,
+    incremental,
+    value,
+    allocation,
+    expectedAllocation
+  );
+
+  // Show the element on the page to the user
+  $(".rebalance-table-body").append(resultRow);
+
+  // animate showing the new symbol
+  $(`#rebalance-${symbol}`).show("slow");
+};
+
 // ****************************************************************
 // *******************REMOVE FROM DISPLAY FUNCTIONS****************
 // ****************************************************************
@@ -153,15 +148,6 @@ export const displayInPortfolio = (symbol, name) => {
 // Remove a security from the screen
 export const removeFromPortfolio = (symbol) => {
   const selector = $(`#portfolio-${symbol}`);
-
-  selector.hide("slow", function () {
-    selector.remove();
-  });
-};
-
-// Remove a security the user previously selected
-export const removeSelectedSecurity = (symbol) => {
-  const selector = $(`#${symbol}`);
 
   selector.hide("slow", function () {
     selector.remove();
