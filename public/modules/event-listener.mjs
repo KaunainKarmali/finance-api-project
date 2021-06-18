@@ -12,6 +12,7 @@ import {
   displaySelectedSecurity,
   removeSelectedSecurity,
   displayNoResults,
+  displayApiErrorMessage,
 } from "./search.mjs";
 
 import { calcSecurityPurchase } from "./portfolio-brain.mjs";
@@ -78,7 +79,6 @@ export const submitUserSearch = () => {
           if (data.length === 0) {
             displayNoResults($searchResultContainer);
           }
-
           // Loop through search results and display it to the user
           else {
             data.forEach((result) => {
@@ -95,8 +95,10 @@ export const submitUserSearch = () => {
           $searchResultContainer.removeClass("hide");
         })
         .catch((error) => {
+          $searchResultContainer.empty();
           // If error occurs, show no search results found and log error
-          displayNoResults($searchResultContainer);
+          displayApiErrorMessage($searchResultContainer);
+          $searchResultContainer.removeClass("hide");
           console.log(error);
         });
     }

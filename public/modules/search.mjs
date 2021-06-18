@@ -43,13 +43,6 @@ const addIconHTML = () => {
   return `<i class="fas fa-plus add-icon"></i>`;
 };
 
-const noResultHTML = () => {
-  return `
-    <div class="search-result-row">
-        <span class="result-symbol">No results found.</span>
-    </div>`;
-};
-
 const selectedSecurityHTML = (symbol, name) => {
   return `
     <div id="${symbol}" class="selection" style="display: none;">
@@ -62,6 +55,20 @@ const selectedSecurityHTML = (symbol, name) => {
       </form>
     </div>
   `;
+};
+
+const noResultHTML = () => {
+  return `
+    <div class="search-result-row">
+        <span class="result-symbol">No results found.</span>
+    </div>`;
+};
+
+const apiErrorMessageHTML = () => {
+  return `
+    <div class="search-result-row">
+        Error fetching search results, please try again later.
+    </div>`;
 };
 
 // ****************************************************
@@ -118,6 +125,13 @@ export const displayNoResults = (selector) => {
   // Create HTML element to be rendered
   const noResult = noResultHTML();
   selector.append(noResult);
+};
+
+// Display there was an api issue
+export const displayApiErrorMessage = (selector) => {
+  // Create HTML element to be rendered
+  const apiErrorMessage = apiErrorMessageHTML();
+  selector.append(apiErrorMessage);
 };
 
 // ****************************************************************
