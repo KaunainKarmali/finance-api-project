@@ -3,7 +3,7 @@ import { numberWithCommas } from "./utils.mjs";
 // ********************************************
 // *******************HTML*********************
 // ********************************************
-const overallResultsHTML = (investment, portfolioCost) => {
+const overallResultsHTML = (investment, portfolioCost, investmentBal) => {
   return `
     <div class="results-div">
       <h3 class="rebalance-header">Your results</h3>

@@ -1,4 +1,4 @@
-import { truncateString } from "./modules/utils.mjs";
+import { truncateString } from "./utils.mjs";
 
 // ********************************************
 // *******************HTML*********************

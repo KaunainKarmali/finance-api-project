@@ -1,10 +1,9 @@
-// ******************* IMPORTS *******************
-import { fetchSecurityPrice, fetchSearchSuggestions } from "./modules/api.mjs";
-import {
-  aggregateBalance,
-  getSize,
-  calcInvestmentBalance,
-} from "./modules/utils.mjs";
+// ********************************************************
+// *********************** IMPORTS ************************
+// ********************************************************
+
+import { fetchSecurityPrice, fetchSearchSuggestions } from "./api.mjs";
+import { aggregateBalance, getSize, calcInvestmentBalance } from "./utils.mjs";
 
 import {
   displayEachSearchSuggestion,
@@ -13,17 +12,18 @@ import {
   displaySelectedSecurity,
   removeSelectedSecurity,
   displayNoResults,
-} from "./modules/search.mjs";
+} from "./search.mjs";
 
-import { calcSecurityPurchase } from "./modules/portfolio-brain.mjs";
+import { calcSecurityPurchase } from "./portfolio-brain.mjs";
 import {
   displayNoResultFound,
   removeNoResultFound,
   displayInPortfolio,
   removeFromPortfolio,
-} from "./modules/portfolio-display.mjs";
+  displayResultRow,
+} from "./portfolio-display.mjs";
 
-import { validateByInputName } from "./modules/error-handling-brain.mjs";
+import { validateByInputName } from "./error-handling-brain.mjs";
 import {
   displayRequiredPopup,
   removeRequiredPopup,
@@ -31,35 +31,37 @@ import {
   removeAllocationPopup,
   highlightRequiredField,
   unhighlightRequiredField,
-} from "./modules/error-handling-display.mjs";
+} from "./error-handling-display.mjs";
 
 import {
   displayOverallResults,
   showOverallResults,
   hideOverallResults,
-} from "./modules/overall-results-display.mjs";
+} from "./overall-results-display.mjs";
 
-// ******************* NAMESPACE APP *******************
-const app = {};
-
+// ********************************************************
 // ******************* GLOBAL VARIABLES *******************
-app.selection = {}; // Stores securities selected by the user
+// ********************************************************
 
-// ******************* JQUERY HANDLES  *******************
-app.$searchResultContainer = $(".search-result-container");
-app.$searchButton = $(".search-icon");
-app.$searchInput = $(".search-input");
-app.$searchForm = $(".search-form");
+let selection = {}; // Stores securities selected by the user
 
-// ******************* FUNCTIONS *******************
+// ********************************************************
+// ******************* JQUERY HANDLES  ********************
+// ********************************************************
+const $searchResultContainer = $(".search-result-container");
+const $searchButton = $(".search-icon");
+const $searchInput = $(".search-input");
+const $searchForm = $(".search-form");
 
-// ******************* EVENT LISTENERS *******************
+// ********************************************************
+// ******************** EVENT LISTENERS *******************
+// ********************************************************
 
 // Listen for user keystrokes to submit searches
-app.submitUserSearch = () => {
-  app.$searchInput.on("keypress", async () => {
+export const submitUserSearch = () => {
+  $searchInput.on("keypress", async () => {
     // get the user's search result and submit api request
-    const search = app.$searchInput.val();
+    const search = $searchInput.val();
 
     if (search !== "") {
       const promise = fetchSearchSuggestions(search);
@@ -70,11 +72,11 @@ app.submitUserSearch = () => {
           const data = JSON.parse(res.message);
 
           // Empty previous results
-          app.$searchResultContainer.empty();
+          $searchResultContainer.empty();
 
           // Display no results if there are none
           if (data.length === 0) {
-            displayNoResults(app.$searchResultContainer);
+            displayNoResults($searchResultContainer);
           }
 
           // Loop through search results and display it to the user
@@ -83,25 +85,25 @@ app.submitUserSearch = () => {
               displayEachSearchSuggestion(
                 result.symbol,
                 result.name,
-                app.selection,
-                app.$searchResultContainer
+                selection,
+                $searchResultContainer
               );
             });
           }
 
           // Show results container
-          app.$searchResultContainer.removeClass("hide");
+          $searchResultContainer.removeClass("hide");
         })
         .catch((error) => {
           // If error occurs, show no search results found and log error
-          displayNoResults(app.$searchResultContainer);
+          displayNoResults($searchResultContainer);
           console.log(error);
         });
     }
   });
 };
 
-app.closeSuggestionsContainer = () => {
+export const closeSuggestionsContainer = () => {
   $(document).mouseup(function (e) {
     const $target = $(e.target);
 
@@ -119,8 +121,8 @@ app.closeSuggestionsContainer = () => {
 };
 
 // Event listener to track when user wants to add or remove a security from the search suggestions area
-app.selectSecurity = () => {
-  app.$searchResultContainer.on("click", ".search-result-row", function () {
+export const selectSecurity = () => {
+  $searchResultContainer.on("click", ".search-result-row", function () {
     // Extract the symbol and company name selected
     const $this = $(this);
     const symbol = $this
@@ -134,16 +136,13 @@ app.selectSecurity = () => {
 
     // Only add unique selections
     if (
-      app.selection[symbol] === undefined &&
+      selection[symbol] === undefined &&
       addSecurity &&
-      getSize(app.selection) < 5
+      getSize(selection) < 5
       // Allows a maximum of 5 securities to be searched due to API limits
     ) {
-      app.selection = {
-        ...app.selection,
-        [symbol]: {
-          name: name,
-        },
+      selection[symbol] = {
+        name: name,
       };
 
       // Show the rebalancing table and button
@@ -159,12 +158,12 @@ app.selectSecurity = () => {
       displayInPortfolio(symbol, name);
 
       // Empty previous results and hide container
-      app.$searchResultContainer.addClass("hide");
-      app.$searchResultContainer.empty();
-      app.$searchInput.val("");
+      $searchResultContainer.addClass("hide");
+      $searchResultContainer.empty();
+      $searchInput.val("");
     } else if (addSecurity !== true) {
       // Remove security from the collection
-      delete app.selection[symbol];
+      delete selection[symbol];
 
       // Remove security from screen
       removeSelectedSecurity(symbol);
@@ -179,7 +178,7 @@ app.selectSecurity = () => {
 };
 
 // Event listener to remove a security from the selected securities section
-app.removeSecurity = () => {
+export const removeSecurity = () => {
   $(".selections-container").on(
     "submit",
     ".selected-security-form",
@@ -190,7 +189,7 @@ app.removeSecurity = () => {
       const symbol = $(this).parent()[0].id;
 
       // Remove security from the collection
-      delete app.selection[symbol];
+      delete selection[symbol];
 
       // Remove security from screen
       removeSelectedSecurity(symbol);
@@ -202,17 +201,17 @@ app.removeSecurity = () => {
 };
 
 // Event listener for when the used selects the form reset button
-app.resetSearch = () => {
-  app.$searchForm.on("reset", () => {
+export const resetSearch = () => {
+  $searchForm.on("reset", () => {
     // Empty previous results and hide container
-    app.$searchResultContainer.addClass("hide");
-    app.$searchResultContainer.empty();
-    app.$searchInput.val("");
+    $searchResultContainer.addClass("hide");
+    $searchResultContainer.empty();
+    $searchInput.val("");
   });
 };
 
 // Event listener for portfolio form submission
-app.portfolioSubmission = () => {
+export const portfolioSubmission = () => {
   $(".portfolio-form").on("submit", async function (e) {
     e.preventDefault();
 
@@ -261,16 +260,16 @@ app.portfolioSubmission = () => {
       const ticker = $securities[index].id.split("-")[1];
 
       // TO DO: update variable names
-      const nameValidated = validateByInputName(ticker, "cost", app.selection);
+      const nameValidated = validateByInputName(ticker, "cost", selection);
       const quantityValidated = validateByInputName(
         ticker,
         "quantityHeld",
-        app.selection
+        selection
       );
       const allocationValidate = validateByInputName(
         ticker,
         "allocation",
-        app.selection
+        selection
       );
 
       if (!nameValidated || !quantityValidated || !allocationValidate) {
@@ -287,7 +286,7 @@ app.portfolioSubmission = () => {
     }
 
     // Validate portfolio allocation is 100 or not
-    const totalAllocation = aggregateBalance(app.selection, "allocation");
+    const totalAllocation = aggregateBalance(selection, "allocation");
 
     if (validated) {
       if (totalAllocation !== 100) {
@@ -303,10 +302,10 @@ app.portfolioSubmission = () => {
     // Proceed if all validation checks are met
     if (validated) {
       const investment = parseFloat($investment.val());
-      const portfolioCost = aggregateBalance(app.selection, "cost");
+      const portfolioCost = aggregateBalance(selection, "cost");
 
       // Loop through securities to get current market price
-      for (const [symbol, details] of Object.entries(app.selection)) {
+      for (const [symbol, details] of Object.entries(selection)) {
         let promise = fetchSecurityPrice(symbol);
 
         await promise
@@ -319,19 +318,19 @@ app.portfolioSubmission = () => {
             const firstKey = Object.keys(timeSeries)[0];
 
             const price = parseFloat(timeSeries[firstKey]["5. adjusted close"]);
-            app.selection[symbol].price = price;
+            selection[symbol].price = price;
 
             // Determine the quantity of securities to purchase and update the remaining amount to invest
-            app.selection[symbol].quantity = calcSecurityPurchase(
-              app.selection[symbol],
+            selection[symbol].quantity = calcSecurityPurchase(
+              selection[symbol],
               investment,
               portfolioCost
             );
 
             // Display the results to the user
-            app.displayResultRow(
+            displayResultRow(
               symbol,
-              app.selection[symbol],
+              selection[symbol],
               investment,
               portfolioCost
             );
@@ -342,24 +341,9 @@ app.portfolioSubmission = () => {
           });
       }
 
-      const investmentBal = calcInvestmentBalance(app.selection);
+      const investmentBal = calcInvestmentBalance(selection);
       displayOverallResults(portfolioCost, investment, investmentBal);
       showOverallResults();
     }
   });
 };
-
-// ******************* INIT FUNCTION *******************
-app.init = () => {
-  app.submitUserSearch();
-  app.closeSuggestionsContainer();
-  app.resetSearch();
-  app.selectSecurity();
-  app.removeSecurity();
-  app.portfolioSubmission();
-};
-
-// ******************* DOCUMENT READY *******************
-$(document).ready(() => {
-  app.init();
-});
