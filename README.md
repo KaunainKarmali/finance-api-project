@@ -15,7 +15,7 @@ The following tech stack was used in the development of myFinancePal
 
 ## Getting started
 * npm install
-* Obtain free API keys from [Alpha Vantage] (https://www.alphavantage.co/) and [Finance Modelling Prep] (https://financialmodelingprep.com/developer)
+* Obtain free API keys from [Alpha Vantage](https://www.alphavantage.co/) and [Finance Modelling Prep](https://financialmodelingprep.com/developer)
 
 ## Features
 * Search bar provides search suggessions based on user inputs paired with API calls
