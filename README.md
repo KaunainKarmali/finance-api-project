@@ -6,26 +6,32 @@
 myFinancePal is a portfolio re-balancing tool that identifies how many securities are required to be purchased or sold to achieve a desired target allocation. This is analogous to a self-service robo-advisor.
 
 ### Technology used
-The following tech stack was used in the development of myFinancePal
-* HTML
+The following tech stack was used in the development of myFinancePal:
+* HTML5
 * CSS
-* JavaScript
+* JavaScript (ES6)
 * jQuery
 * API calls made using `got` package
 
 ## Getting started
+Begin using the app by performing the following:
 * npm install
 * Obtain free API keys from [Alpha Vantage](https://www.alphavantage.co/) and [Finance Modelling Prep](https://financialmodelingprep.com/developer)
+* Replace the API keys in the server-scripts/api.js file
+* Run using node or nodemon using `node index.js` or `nodemon index.js`
 
 ## Features
+The following features exist:
 * Search bar provides search suggessions based on user inputs paired with API calls
 * Input validations on all user input fields
 * Fetche's previous day's closing price for each security using API calls
 * Calculates the total number of securities to purchase and/or sell based on the user's inputs and the most recent closing price
+* Mobile responsive
 
 ## Limitations
-* Maximum of 5 API calls per minutes to Alpha Vantange
-* Maximum of 250 API calls per day to Alpha Vantange and Finance Modelling Prep
+The following limitations apply to the use of this app:
+* Maximum of 5 API calls per minute to Alpha Vantange
+* Maximum of 250 API calls per day to each of Alpha Vantange and Finance Modelling Prep
 
 ## Licence
 
