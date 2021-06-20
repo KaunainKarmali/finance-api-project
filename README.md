@@ -15,7 +15,7 @@ The following tech stack was used in the development of myFinancePal:
 
 ## Getting started
 Begin using the app by performing the following:
-* npm install
+* Run `npm install`
 * Obtain free API keys from [Alpha Vantage](https://www.alphavantage.co/) and [Finance Modelling Prep](https://financialmodelingprep.com/developer)
 * Replace the API keys in the server-scripts/api.js file
 * Run using node or nodemon using `node index.js` or `nodemon index.js`
